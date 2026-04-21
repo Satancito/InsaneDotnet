@@ -51,12 +51,12 @@ namespace InsaneIO.Insane.Extensions
             return ComputeHash(data.ToByteArrayUtf8(), algorithm);
         }
 
-        public static string ComputeEncodedHash(this byte[] data, IEncoder encoder, HashAlgorithm algorithm = HashAlgorithm.Sha512)
+        public static string ComputeHashEncoded(this byte[] data, IEncoder encoder, HashAlgorithm algorithm = HashAlgorithm.Sha512)
         {
             return encoder.Encode(ComputeHash(data, algorithm));
         }
 
-        public static string ComputeEncodedHash(this string data, IEncoder encoder, HashAlgorithm algorithm = HashAlgorithm.Sha512)
+        public static string ComputeHashEncoded(this string data, IEncoder encoder, HashAlgorithm algorithm = HashAlgorithm.Sha512)
         {
             return encoder.Encode(ComputeHash(data, algorithm));
         }
@@ -71,14 +71,14 @@ namespace InsaneIO.Insane.Extensions
             return data.ComputeHash(algorithm).SequenceEqual(expected);
         }
 
-        public static bool VerifyEncodedHash(this byte[] data, string expected, IEncoder encoder, HashAlgorithm algorithm = HashAlgorithm.Sha512)
+        public static bool VerifyHashFromEncoded(this byte[] data, string expected, IEncoder encoder, HashAlgorithm algorithm = HashAlgorithm.Sha512)
         {
-            return data.ComputeEncodedHash(encoder,algorithm) == expected;
+            return data.ComputeHashEncoded(encoder,algorithm) == expected;
         }
 
-        public static bool VerifyEncodedHash(this string data, string expected, IEncoder encoder, HashAlgorithm algorithm = HashAlgorithm.Sha512)
+        public static bool VerifyHashFromEncoded(this string data, string expected, IEncoder encoder, HashAlgorithm algorithm = HashAlgorithm.Sha512)
         {
-            return data.ComputeEncodedHash(encoder, algorithm) == expected;
+            return data.ComputeHashEncoded(encoder, algorithm) == expected;
         }
 
         public static byte[] ComputeHmac(this byte[] data, byte[] key, HashAlgorithm algorithm = HashAlgorithm.Sha512)
@@ -130,24 +130,24 @@ namespace InsaneIO.Insane.Extensions
             return ComputeHmac(data, key.ToByteArrayUtf8(), algorithm);
         }
 
-        public static string ComputeEncodedHmac(this byte[] data, byte[] key, IEncoder encoder, HashAlgorithm algorithm = HashAlgorithm.Sha512)
+        public static string ComputeHmacEncoded(this byte[] data, byte[] key, IEncoder encoder, HashAlgorithm algorithm = HashAlgorithm.Sha512)
         {
             return encoder.Encode(ComputeHmac(data, key, algorithm));
         }
 
 
-        public static string ComputeEncodedHmac(this string data, string key, IEncoder encoder, HashAlgorithm algorithm = HashAlgorithm.Sha512)
+        public static string ComputeHmacEncoded(this string data, string key, IEncoder encoder, HashAlgorithm algorithm = HashAlgorithm.Sha512)
         {
             return encoder.Encode(ComputeHmac(data, key, algorithm));
         }
 
-        public static string ComputeEncodedHmac(this byte[] data, string key, IEncoder encoder, HashAlgorithm algorithm = HashAlgorithm.Sha512)
+        public static string ComputeHmacEncoded(this byte[] data, string key, IEncoder encoder, HashAlgorithm algorithm = HashAlgorithm.Sha512)
         {
             return encoder.Encode(ComputeHmac(data, key, algorithm));
         }
 
 
-        public static string ComputeEncodedHmac(this string data, byte[] key, IEncoder encoder, HashAlgorithm algorithm = HashAlgorithm.Sha512)
+        public static string ComputeHmacEncoded(this string data, byte[] key, IEncoder encoder, HashAlgorithm algorithm = HashAlgorithm.Sha512)
         {
             return encoder.Encode(ComputeHmac(data, key, algorithm));
         }
@@ -172,26 +172,26 @@ namespace InsaneIO.Insane.Extensions
             return data.ComputeHmac(key, algorithm).SequenceEqual(expected);
         }
 
-        public static bool VerifyEncodedHmac(this byte[] data, byte[] key, string expected, IEncoder encoder, HashAlgorithm algorithm = HashAlgorithm.Sha512)
+        public static bool VerifyHmacFromEncoded(this byte[] data, byte[] key, string expected, IEncoder encoder, HashAlgorithm algorithm = HashAlgorithm.Sha512)
         {
-            return data.ComputeEncodedHmac(key, encoder,algorithm).SequenceEqual(expected);
+            return data.ComputeHmacEncoded(key, encoder,algorithm).SequenceEqual(expected);
         }
 
 
-        public static bool VerifyEncodedHmac(string data, string key, string expected, IEncoder encoder, HashAlgorithm algorithm = HashAlgorithm.Sha512)
+        public static bool VerifyHmacFromEncoded(this string data, string key, string expected, IEncoder encoder, HashAlgorithm algorithm = HashAlgorithm.Sha512)
         {
-            return data.ComputeEncodedHmac(key, encoder, algorithm).SequenceEqual(expected);
+            return data.ComputeHmacEncoded(key, encoder, algorithm).SequenceEqual(expected);
         }
 
-        public static bool VerifyEncodedHmac(this string data, byte[] key, string expected, IEncoder encoder, HashAlgorithm algorithm = HashAlgorithm.Sha512)
+        public static bool VerifyHmacFromEncoded(this string data, byte[] key, string expected, IEncoder encoder, HashAlgorithm algorithm = HashAlgorithm.Sha512)
         {
-            return data.ComputeEncodedHmac(key, encoder, algorithm).SequenceEqual(expected);
+            return data.ComputeHmacEncoded(key, encoder, algorithm).SequenceEqual(expected);
         }
 
 
-        public static bool VerifyEncodedHmac(byte[] data, string key, string expected, IEncoder encoder, HashAlgorithm algorithm = HashAlgorithm.Sha512)
+        public static bool VerifyHmacFromEncoded(this byte[] data, string key, string expected, IEncoder encoder, HashAlgorithm algorithm = HashAlgorithm.Sha512)
         {
-            return data.ComputeEncodedHmac(key, encoder, algorithm).SequenceEqual(expected);
+            return data.ComputeHmacEncoded(key, encoder, algorithm).SequenceEqual(expected);
         }
 
         public static byte[] ComputeScrypt(this byte[] data, byte[] salt, uint iterations = Constants.ScryptIterations, uint blockSize = Constants.ScryptBlockSize, uint parallelism = Constants.ScryptParallelism, uint derivedKeyLength = Constants.ScryptDerivedKeyLength)
@@ -214,22 +214,22 @@ namespace InsaneIO.Insane.Extensions
             return ComputeScrypt(data.ToByteArrayUtf8(), salt, iterations, blockSize, parallelism, derivedKeyLength);
         }
 
-        public static string ComputeEncodedScrypt(this byte[] data, byte[] salt, IEncoder encoder, uint iterations = Constants.ScryptIterations, uint blockSize = Constants.ScryptBlockSize, uint parallelism = Constants.ScryptParallelism, uint derivedKeyLength = Constants.ScryptDerivedKeyLength)
+        public static string ComputeScryptEncoded(this byte[] data, byte[] salt, IEncoder encoder, uint iterations = Constants.ScryptIterations, uint blockSize = Constants.ScryptBlockSize, uint parallelism = Constants.ScryptParallelism, uint derivedKeyLength = Constants.ScryptDerivedKeyLength)
         {
             return encoder.Encode(ComputeScrypt(data, salt, iterations, blockSize, parallelism, derivedKeyLength));
         }
 
-        public static string ComputeEncodedScrypt(this string data, string salt, IEncoder encoder, uint iterations = Constants.ScryptIterations, uint blockSize = Constants.ScryptBlockSize, uint parallelism = Constants.ScryptParallelism, uint derivedKeyLength = Constants.ScryptDerivedKeyLength)
+        public static string ComputeScryptEncoded(this string data, string salt, IEncoder encoder, uint iterations = Constants.ScryptIterations, uint blockSize = Constants.ScryptBlockSize, uint parallelism = Constants.ScryptParallelism, uint derivedKeyLength = Constants.ScryptDerivedKeyLength)
         {
             return encoder.Encode(ComputeScrypt(data, salt, iterations, blockSize, parallelism, derivedKeyLength));
         }
 
-        public static string ComputeEncodedScrypt(this string data, byte[] salt, IEncoder encoder, uint iterations = Constants.ScryptIterations, uint blockSize = Constants.ScryptBlockSize, uint parallelism = Constants.ScryptParallelism, uint derivedKeyLength = Constants.ScryptDerivedKeyLength)
+        public static string ComputeScryptEncoded(this string data, byte[] salt, IEncoder encoder, uint iterations = Constants.ScryptIterations, uint blockSize = Constants.ScryptBlockSize, uint parallelism = Constants.ScryptParallelism, uint derivedKeyLength = Constants.ScryptDerivedKeyLength)
         {
             return encoder.Encode(ComputeScrypt(data, salt, iterations, blockSize, parallelism, derivedKeyLength));
         }
 
-        public static string ComputeEncodedScrypt(this byte[] data, string salt, IEncoder encoder, uint iterations = Constants.ScryptIterations, uint blockSize = Constants.ScryptBlockSize, uint parallelism = Constants.ScryptParallelism, uint derivedKeyLength = Constants.ScryptDerivedKeyLength)
+        public static string ComputeScryptEncoded(this byte[] data, string salt, IEncoder encoder, uint iterations = Constants.ScryptIterations, uint blockSize = Constants.ScryptBlockSize, uint parallelism = Constants.ScryptParallelism, uint derivedKeyLength = Constants.ScryptDerivedKeyLength)
         {
             return encoder.Encode(ComputeScrypt(data, salt, iterations, blockSize, parallelism, derivedKeyLength));
         }
@@ -254,24 +254,24 @@ namespace InsaneIO.Insane.Extensions
             return data.ComputeScrypt(salt, iterations, blockSize, parallelism, derivedKeyLength).SequenceEqual(expected);
         }
 
-        public static bool VerifyEncodedScrypt(this byte[] data, byte[] salt, string expected, IEncoder encoder, uint iterations = Constants.ScryptIterations, uint blockSize = Constants.ScryptBlockSize, uint parallelism = Constants.ScryptParallelism, uint derivedKeyLength = Constants.ScryptDerivedKeyLength)
+        public static bool VerifyScryptFromEncoded(this byte[] data, byte[] salt, string expected, IEncoder encoder, uint iterations = Constants.ScryptIterations, uint blockSize = Constants.ScryptBlockSize, uint parallelism = Constants.ScryptParallelism, uint derivedKeyLength = Constants.ScryptDerivedKeyLength)
         {
-            return data.ComputeEncodedScrypt(salt,encoder, iterations, blockSize, parallelism, derivedKeyLength).SequenceEqual(expected);
+            return data.ComputeScryptEncoded(salt,encoder, iterations, blockSize, parallelism, derivedKeyLength).SequenceEqual(expected);
         }
 
-        public static bool VerifyEncodedScrypt(this string data, string salt, string expected, IEncoder encoder, uint iterations = Constants.ScryptIterations, uint blockSize = Constants.ScryptBlockSize, uint parallelism = Constants.ScryptParallelism, uint derivedKeyLength = Constants.ScryptDerivedKeyLength)
+        public static bool VerifyScryptFromEncoded(this string data, string salt, string expected, IEncoder encoder, uint iterations = Constants.ScryptIterations, uint blockSize = Constants.ScryptBlockSize, uint parallelism = Constants.ScryptParallelism, uint derivedKeyLength = Constants.ScryptDerivedKeyLength)
         {
-            return data.ComputeEncodedScrypt(salt, encoder, iterations, blockSize, parallelism, derivedKeyLength).SequenceEqual(expected);
+            return data.ComputeScryptEncoded(salt, encoder, iterations, blockSize, parallelism, derivedKeyLength).SequenceEqual(expected);
         }
 
-        public static bool VerifyEncodedScrypt(this string data, byte[] salt, string expected, IEncoder encoder, uint iterations = Constants.ScryptIterations, uint blockSize = Constants.ScryptBlockSize, uint parallelism = Constants.ScryptParallelism, uint derivedKeyLength = Constants.ScryptDerivedKeyLength)
+        public static bool VerifyScryptFromEncoded(this string data, byte[] salt, string expected, IEncoder encoder, uint iterations = Constants.ScryptIterations, uint blockSize = Constants.ScryptBlockSize, uint parallelism = Constants.ScryptParallelism, uint derivedKeyLength = Constants.ScryptDerivedKeyLength)
         {
-            return data.ComputeEncodedScrypt(salt, encoder, iterations, blockSize, parallelism, derivedKeyLength).SequenceEqual(expected);
+            return data.ComputeScryptEncoded(salt, encoder, iterations, blockSize, parallelism, derivedKeyLength).SequenceEqual(expected);
         }
 
-        public static bool VerifyEncodedScrypt(this byte[] data, string salt, string expected, IEncoder encoder, uint iterations = Constants.ScryptIterations, uint blockSize = Constants.ScryptBlockSize, uint parallelism = Constants.ScryptParallelism, uint derivedKeyLength = Constants.ScryptDerivedKeyLength)
+        public static bool VerifyScryptFromEncoded(this byte[] data, string salt, string expected, IEncoder encoder, uint iterations = Constants.ScryptIterations, uint blockSize = Constants.ScryptBlockSize, uint parallelism = Constants.ScryptParallelism, uint derivedKeyLength = Constants.ScryptDerivedKeyLength)
         {
-            return data.ComputeEncodedScrypt(salt, encoder, iterations, blockSize, parallelism, derivedKeyLength).SequenceEqual(expected);
+            return data.ComputeScryptEncoded(salt, encoder, iterations, blockSize, parallelism, derivedKeyLength).SequenceEqual(expected);
         }
 
         public static byte[] ComputeArgon2(this byte[] data, byte[] salt, uint iterations = Constants.Argon2Iterations, uint memorySizeKiB = Constants.Argon2MemorySizeInKiB, uint parallelism = Constants.Argon2DegreeOfParallelism, Argon2Variant variant = Argon2Variant.Argon2id, uint derivedKeyLength = Constants.Argon2DerivedKeyLength)
@@ -332,22 +332,22 @@ namespace InsaneIO.Insane.Extensions
         }
 
 
-        public static string ComputeEncodedArgon2(this byte[] data, byte[] salt, IEncoder encoder, uint iterations = Constants.Argon2Iterations, uint memorySizeKiB = Constants.Argon2MemorySizeInKiB, uint parallelism = Constants.Argon2DegreeOfParallelism, Argon2Variant variant = Argon2Variant.Argon2id, uint derivedKeyLength = Constants.Argon2DerivedKeyLength)
+        public static string ComputeArgon2Encoded(this byte[] data, byte[] salt, IEncoder encoder, uint iterations = Constants.Argon2Iterations, uint memorySizeKiB = Constants.Argon2MemorySizeInKiB, uint parallelism = Constants.Argon2DegreeOfParallelism, Argon2Variant variant = Argon2Variant.Argon2id, uint derivedKeyLength = Constants.Argon2DerivedKeyLength)
         {
             return encoder.Encode(ComputeArgon2(data, salt, iterations, memorySizeKiB, parallelism, variant, derivedKeyLength));
         }
 
-        public static string ComputeEncodedArgon2(this string data, string salt, IEncoder encoder, uint iterations = Constants.Argon2Iterations, uint memorySizeKiB = Constants.Argon2MemorySizeInKiB, uint parallelism = Constants.Argon2DegreeOfParallelism, Argon2Variant variant = Argon2Variant.Argon2id, uint derivedKeyLength = Constants.Argon2DerivedKeyLength)
+        public static string ComputeArgon2Encoded(this string data, string salt, IEncoder encoder, uint iterations = Constants.Argon2Iterations, uint memorySizeKiB = Constants.Argon2MemorySizeInKiB, uint parallelism = Constants.Argon2DegreeOfParallelism, Argon2Variant variant = Argon2Variant.Argon2id, uint derivedKeyLength = Constants.Argon2DerivedKeyLength)
         {
             return encoder.Encode(ComputeArgon2(data, salt, iterations, memorySizeKiB, parallelism, variant, derivedKeyLength));
         }
 
-        public static string ComputeEncodedArgon2(this string data, byte[] salt, IEncoder encoder, uint iterations = Constants.Argon2Iterations, uint memorySizeKiB = Constants.Argon2MemorySizeInKiB, uint parallelism = Constants.Argon2DegreeOfParallelism, Argon2Variant variant = Argon2Variant.Argon2id, uint derivedKeyLength = Constants.Argon2DerivedKeyLength)
+        public static string ComputeArgon2Encoded(this string data, byte[] salt, IEncoder encoder, uint iterations = Constants.Argon2Iterations, uint memorySizeKiB = Constants.Argon2MemorySizeInKiB, uint parallelism = Constants.Argon2DegreeOfParallelism, Argon2Variant variant = Argon2Variant.Argon2id, uint derivedKeyLength = Constants.Argon2DerivedKeyLength)
         {
             return encoder.Encode(ComputeArgon2(data, salt, iterations, memorySizeKiB, parallelism, variant, derivedKeyLength));
         }
 
-        public static string ComputeEncodedArgon2(this byte[] data, string salt, IEncoder encoder, uint iterations = Constants.Argon2Iterations, uint memorySizeKiB = Constants.Argon2MemorySizeInKiB, uint parallelism = Constants.Argon2DegreeOfParallelism, Argon2Variant variant = Argon2Variant.Argon2id, uint derivedKeyLength = Constants.Argon2DerivedKeyLength)
+        public static string ComputeArgon2Encoded(this byte[] data, string salt, IEncoder encoder, uint iterations = Constants.Argon2Iterations, uint memorySizeKiB = Constants.Argon2MemorySizeInKiB, uint parallelism = Constants.Argon2DegreeOfParallelism, Argon2Variant variant = Argon2Variant.Argon2id, uint derivedKeyLength = Constants.Argon2DerivedKeyLength)
         {
             return encoder.Encode(ComputeArgon2(data, salt, iterations, memorySizeKiB, parallelism, variant, derivedKeyLength));
         }
@@ -373,24 +373,24 @@ namespace InsaneIO.Insane.Extensions
         }
 
 
-        public static bool VerifyEncodedArgon2(this byte[] data, byte[] salt, string expected, IEncoder encoder, uint iterations = Constants.Argon2Iterations, uint memorySizeKiB = Constants.Argon2MemorySizeInKiB, uint parallelism = Constants.Argon2DegreeOfParallelism, Argon2Variant variant = Argon2Variant.Argon2id, uint derivedKeyLength = Constants.Argon2DerivedKeyLength)
+        public static bool VerifyArgon2FromEncoded(this byte[] data, byte[] salt, string expected, IEncoder encoder, uint iterations = Constants.Argon2Iterations, uint memorySizeKiB = Constants.Argon2MemorySizeInKiB, uint parallelism = Constants.Argon2DegreeOfParallelism, Argon2Variant variant = Argon2Variant.Argon2id, uint derivedKeyLength = Constants.Argon2DerivedKeyLength)
         {
-            return data.ComputeEncodedArgon2(salt,encoder, iterations, memorySizeKiB, parallelism, variant, derivedKeyLength).SequenceEqual(expected);
+            return data.ComputeArgon2Encoded(salt,encoder, iterations, memorySizeKiB, parallelism, variant, derivedKeyLength).SequenceEqual(expected);
         }
 
-        public static bool VerifyEncodedArgon2(this string data, string salt, string expected, IEncoder encoder, uint iterations = Constants.Argon2Iterations, uint memorySizeKiB = Constants.Argon2MemorySizeInKiB, uint parallelism = Constants.Argon2DegreeOfParallelism, Argon2Variant variant = Argon2Variant.Argon2id, uint derivedKeyLength = Constants.Argon2DerivedKeyLength)
+        public static bool VerifyArgon2FromEncoded(this string data, string salt, string expected, IEncoder encoder, uint iterations = Constants.Argon2Iterations, uint memorySizeKiB = Constants.Argon2MemorySizeInKiB, uint parallelism = Constants.Argon2DegreeOfParallelism, Argon2Variant variant = Argon2Variant.Argon2id, uint derivedKeyLength = Constants.Argon2DerivedKeyLength)
         {
-            return data.ComputeEncodedArgon2(salt, encoder, iterations, memorySizeKiB, parallelism, variant, derivedKeyLength).SequenceEqual(expected);
+            return data.ComputeArgon2Encoded(salt, encoder, iterations, memorySizeKiB, parallelism, variant, derivedKeyLength).SequenceEqual(expected);
         }
 
-        public static bool VerifyEncodedArgon2(this string data, byte[] salt, string expected, IEncoder encoder, uint iterations = Constants.Argon2Iterations, uint memorySizeKiB = Constants.Argon2MemorySizeInKiB, uint parallelism = Constants.Argon2DegreeOfParallelism, Argon2Variant variant = Argon2Variant.Argon2id, uint derivedKeyLength = Constants.Argon2DerivedKeyLength)
+        public static bool VerifyArgon2FromEncoded(this string data, byte[] salt, string expected, IEncoder encoder, uint iterations = Constants.Argon2Iterations, uint memorySizeKiB = Constants.Argon2MemorySizeInKiB, uint parallelism = Constants.Argon2DegreeOfParallelism, Argon2Variant variant = Argon2Variant.Argon2id, uint derivedKeyLength = Constants.Argon2DerivedKeyLength)
         {
-            return data.ComputeEncodedArgon2(salt, encoder, iterations, memorySizeKiB, parallelism, variant, derivedKeyLength).SequenceEqual(expected);
+            return data.ComputeArgon2Encoded(salt, encoder, iterations, memorySizeKiB, parallelism, variant, derivedKeyLength).SequenceEqual(expected);
         }
 
-        public static bool VerifyEncodedArgon2(this byte[] data, string salt, string expected, IEncoder encoder, uint iterations = Constants.Argon2Iterations, uint memorySizeKiB = Constants.Argon2MemorySizeInKiB, uint parallelism = Constants.Argon2DegreeOfParallelism, Argon2Variant variant = Argon2Variant.Argon2id, uint derivedKeyLength = Constants.Argon2DerivedKeyLength)
+        public static bool VerifyArgon2FromEncoded(this byte[] data, string salt, string expected, IEncoder encoder, uint iterations = Constants.Argon2Iterations, uint memorySizeKiB = Constants.Argon2MemorySizeInKiB, uint parallelism = Constants.Argon2DegreeOfParallelism, Argon2Variant variant = Argon2Variant.Argon2id, uint derivedKeyLength = Constants.Argon2DerivedKeyLength)
         {
-            return data.ComputeEncodedArgon2(salt, encoder, iterations, memorySizeKiB, parallelism, variant, derivedKeyLength).SequenceEqual(expected);
+            return data.ComputeArgon2Encoded(salt, encoder, iterations, memorySizeKiB, parallelism, variant, derivedKeyLength).SequenceEqual(expected);
         }
 
     }

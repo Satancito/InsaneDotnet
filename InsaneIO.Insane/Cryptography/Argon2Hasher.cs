@@ -75,12 +75,12 @@ namespace InsaneIO.Insane.Cryptography
 
         public string ComputeEncoded(byte[] data)
         {
-            return data.ComputeEncodedArgon2(Salt, Encoder, Iterations, MemorySizeKiB, DegreeOfParallelism, Argon2Variant, DerivedKeyLength);
+            return data.ComputeArgon2Encoded(Salt, Encoder, Iterations, MemorySizeKiB, DegreeOfParallelism, Argon2Variant, DerivedKeyLength);
         }
 
         public string ComputeEncoded(string data)
         {
-            return data.ComputeEncodedArgon2(Salt, Encoder, Iterations, MemorySizeKiB, DegreeOfParallelism, Argon2Variant, DerivedKeyLength);
+            return data.ComputeArgon2Encoded(Salt, Encoder, Iterations, MemorySizeKiB, DegreeOfParallelism, Argon2Variant, DerivedKeyLength);
         }
 
         public bool Verify(byte[] data, byte[] expected)

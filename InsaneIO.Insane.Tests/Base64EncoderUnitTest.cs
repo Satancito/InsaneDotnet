@@ -13,6 +13,7 @@ using System.Security.Cryptography;
 using System.Runtime.Versioning;
 using FluentAssertions;
 using FluentAssertions.Equivalency;
+using System.Text.RegularExpressions;
 
 namespace InsaneIO.Insane.Tests
 {
@@ -241,7 +242,7 @@ BMqYEI4qTxhH714mB3L5viUCAwEAAQ==";
         [TestMethod]
         public void TestEncodeMimeBase64()
         {
-            Assert.AreEqual(TestMimeBase64String, encoderMimeLineBreaksNormalBase64.Encode(TestBytes));
+            Assert.AreEqual(NormalizeNewLines(TestMimeBase64String), encoderMimeLineBreaksNormalBase64.Encode(TestBytes));
         }
 
         public void TestDecodePemBase64()
@@ -264,8 +265,12 @@ BMqYEI4qTxhH714mB3L5viUCAwEAAQ==";
             IEncoder deserialized = Base64Encoder.Deserialize(json);
             Assert.AreEqual(encoder.GetType().FullName, deserialized.GetType().FullName);
             Assert.IsInstanceOfType(deserialized, typeof(Base64Encoder));
-            Assert.AreEqual(jsonObject.ToJsonString(), deserialized.ToJsonObject().ToJsonString());
-            jsonObject.Should().BeEquivalentTo(deserialized.ToJsonObject(), options => options.ComparingByMembers<JsonNode>().IgnoringCyclicReferences());
+            TestSerializationAssertions.AssertJsonEquals(jsonObject, deserialized.ToJsonObject());
+        }
+
+        private static string NormalizeNewLines(string value)
+        {
+            return Regex.Replace(value, "\r?\n", Environment.NewLine);
         }
     }
 }

@@ -80,37 +80,37 @@ namespace InsaneIO.Insane.Extensions
             return DecryptAesCbc(data, key.ToByteArrayUtf8(), padding);
         }
 
-        public static string EncryptEncodedAesCbc(this byte[] data, byte[] key, IEncoder encoder, AesCbcPadding padding = AesCbcPadding.Pkcs7)
+        public static string EncryptAesCbcEncoded(this byte[] data, byte[] key, IEncoder encoder, AesCbcPadding padding = AesCbcPadding.Pkcs7)
         {
             return encoder.Encode(EncryptAesCbc(data, key, padding));
         }
 
-        public static string EncryptEncodedAesCbc(this string data, string key, IEncoder encoder, AesCbcPadding padding = AesCbcPadding.Pkcs7)
+        public static string EncryptAesCbcEncoded(this string data, string key, IEncoder encoder, AesCbcPadding padding = AesCbcPadding.Pkcs7)
         {
             return encoder.Encode(EncryptAesCbc(data, key, padding));
         }
 
-        public static string EncryptEncodedAesCbc(this string data, byte[] key, IEncoder encoder, AesCbcPadding padding = AesCbcPadding.Pkcs7)
+        public static string EncryptAesCbcEncoded(this string data, byte[] key, IEncoder encoder, AesCbcPadding padding = AesCbcPadding.Pkcs7)
         {
             return encoder.Encode(EncryptAesCbc(data, key, padding));
         }
 
-        public static string EncryptEncodedAesCbc(this byte[] data, string key, IEncoder encoder, AesCbcPadding padding = AesCbcPadding.Pkcs7)
+        public static string EncryptAesCbcEncoded(this byte[] data, string key, IEncoder encoder, AesCbcPadding padding = AesCbcPadding.Pkcs7)
         {
             return encoder.Encode(EncryptAesCbc(data, key, padding));
         }
 
-        public static byte[] DecryptEncodedAesCbc(this string data, byte[] key, IEncoder encoder, AesCbcPadding padding = AesCbcPadding.Pkcs7)
+        public static byte[] DecryptAesCbcFromEncoded(this string data, byte[] key, IEncoder encoder, AesCbcPadding padding = AesCbcPadding.Pkcs7)
         {
             return DecryptAesCbc(encoder.Decode(data), key, padding);
         }
 
-        public static byte[] DecryptEncodedAesCbc(this string data, string key, IEncoder encoder, AesCbcPadding padding = AesCbcPadding.Pkcs7)
+        public static byte[] DecryptAesCbcFromEncoded(this string data, string key, IEncoder encoder, AesCbcPadding padding = AesCbcPadding.Pkcs7)
         {
             return DecryptAesCbc(encoder.Decode(data), key, padding);
         }
 
-        // █ IJSRuntime methods.
+        // █ IJSRuntime extensions for AES-CBC encryption and decryption using JavaScript interop. These methods allow you to perform AES-CBC encryption and decryption in a Blazor application by invoking JavaScript functions that utilize the Web Crypto API.
         public static async Task<byte[]> EncryptAesCbcAsync(this IJSRuntime js, byte[] data, byte[] key, AesCbcPadding padding = AesCbcPadding.Pkcs7)
         {
             string fxName = "Insane_" + HexEncoder.DefaultInstance.Encode(RandomExtensions.NextBytes(16));
@@ -132,6 +132,12 @@ Insane.{fxName} = (data, key, padding) => {{
             await js.InvokeAsync<object>("eval", $"delete Insane.{fxName};");
             return result;
         }
+
+        public static async Task<byte[]> EncryptAesCbcAsync(this IJSRuntime js, string data, string key, AesCbcPadding padding = AesCbcPadding.Pkcs7)
+        {
+            return await EncryptAesCbcAsync(js, data.ToByteArrayUtf8(), key.ToByteArrayUtf8(), padding);
+        }
+
 
         public static async Task<byte[]> DecryptAesCbcAsync(this IJSRuntime js, byte[] data, byte[] key, AesCbcPadding padding = AesCbcPadding.Pkcs7)
         {
@@ -155,32 +161,39 @@ Insane.{fxName} = (data, key, padding) => {{
             return result;
         }
 
-        public static async Task<byte[]> EncryptAesCbcAsync(this IJSRuntime js, string data, string key, AesCbcPadding padding = AesCbcPadding.Pkcs7)
-        {
-            return await EncryptAesCbcAsync(js, data.ToByteArrayUtf8(), key.ToByteArrayUtf8(), padding);
-        }
-
         public static async Task<byte[]> DecryptAesCbcAsync(this IJSRuntime js, byte[] data, string key, AesCbcPadding padding = AesCbcPadding.Pkcs7)
         {
             return await DecryptAesCbcAsync(js, data, key.ToByteArrayUtf8(), padding);
         }
 
-        public static async Task<string> EncryptEncodedAesCbcAsync(this IJSRuntime js, byte[] data, byte[] key, IEncoder encoder, AesCbcPadding padding = AesCbcPadding.Pkcs7)
+
+
+        public static async Task<string> EncryptAesCbcEncodedAsync(this IJSRuntime js, byte[] data, byte[] key, IEncoder encoder, AesCbcPadding padding = AesCbcPadding.Pkcs7)
         {
             return encoder.Encode(await EncryptAesCbcAsync(js, data, key, padding));
         }
 
-        public static async Task<string> EncryptEncodedAesCbcAsync(this IJSRuntime js, string data, string key, IEncoder encoder, AesCbcPadding padding = AesCbcPadding.Pkcs7)
+        public static async Task<string> EncryptAesCbcEncodedAsync(this IJSRuntime js, string data, string key, IEncoder encoder, AesCbcPadding padding = AesCbcPadding.Pkcs7)
         {
             return encoder.Encode(await EncryptAesCbcAsync(js, data, key, padding));
         }
 
-        public static async Task<byte[]> DecryptEncodedAesCbcAsync(this IJSRuntime js, string data, byte[] key, IEncoder encoder, AesCbcPadding padding = AesCbcPadding.Pkcs7)
+        public static async Task<string> EncryptAesCbcEncodedAsync(this IJSRuntime js, string data, byte[] key, IEncoder encoder, AesCbcPadding padding = AesCbcPadding.Pkcs7)
+        {
+            return await EncryptAesCbcEncodedAsync(js, data.ToByteArrayUtf8(), key, encoder, padding);
+        }
+
+        public static async Task<string> EncryptAesCbcEncodedAsync(this IJSRuntime js, byte[] data, string key, IEncoder encoder, AesCbcPadding padding = AesCbcPadding.Pkcs7)
+        {
+            return await EncryptAesCbcEncodedAsync(js, data, key.ToByteArrayUtf8(), encoder, padding);
+        }
+
+        public static async Task<byte[]> DecryptAesCbcFromEncodedAsync(this IJSRuntime js, string data, byte[] key, IEncoder encoder, AesCbcPadding padding = AesCbcPadding.Pkcs7)
         {
             return await DecryptAesCbcAsync(js, encoder.Decode(data), key, padding);
         }
 
-        public static async Task<byte[]> DecryptEncodedAesCbcAsync(this IJSRuntime js, string data, string key, IEncoder encoder, AesCbcPadding padding = AesCbcPadding.Pkcs7)
+        public static async Task<byte[]> DecryptAesCbcFromEncodedAsync(this IJSRuntime js, string data, string key, IEncoder encoder, AesCbcPadding padding = AesCbcPadding.Pkcs7)
         {
             return await DecryptAesCbcAsync(js, encoder.Decode(data), key, padding);
         }

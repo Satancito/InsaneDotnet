@@ -65,12 +65,12 @@ namespace InsaneIO.Insane.Cryptography
 
         public string EncryptEncoded(byte[] data)
         {
-            return data.EncryptEncodedRsa(KeyPair.PublicKey!, Encoder, Padding);
+            return data.EncryptRsaEncoded(KeyPair.PublicKey!, Encoder, Padding);
         }
 
         public string EncryptEncoded(string data)
         {
-            return data.EncryptEncodedRsa(KeyPair.PublicKey!, Encoder, Padding);
+            return data.EncryptRsaEncoded(KeyPair.PublicKey!, Encoder, Padding);
         }
 
         public byte[] Decrypt(byte[] data)
@@ -80,7 +80,7 @@ namespace InsaneIO.Insane.Cryptography
 
         public byte[] DecryptEncoded(string data)
         {
-            return data.DecryptEncodedRsa(KeyPair.PrivateKey!,Encoder, Padding);
+            return data.DecryptRsaFromEncoded(KeyPair.PrivateKey!,Encoder, Padding);
         }
     }
 }

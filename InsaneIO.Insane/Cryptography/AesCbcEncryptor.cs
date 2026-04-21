@@ -68,12 +68,12 @@ namespace InsaneIO.Insane.Cryptography
 
         public string EncryptEncoded(byte[] data)
         {
-            return data.EncryptEncodedAesCbc(Key, Encoder, Padding);
+            return data.EncryptAesCbcEncoded(Key, Encoder, Padding);
         }
 
         public string EncryptEncoded(string data)
         {
-            return data.EncryptEncodedAesCbc(Key, Encoder, Padding);
+            return data.EncryptAesCbcEncoded(Key, Encoder, Padding);
         }
 
         public byte[] Decrypt(byte[] data)
@@ -83,7 +83,7 @@ namespace InsaneIO.Insane.Cryptography
 
         public byte[] DecryptEncoded(string data)
         {
-            return data.DecryptEncodedAesCbc(Key, Encoder, Padding);
+            return data.DecryptAesCbcFromEncoded(Key, Encoder, Padding);
         }
     }
 }

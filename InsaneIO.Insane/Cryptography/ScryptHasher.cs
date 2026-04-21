@@ -80,12 +80,12 @@ namespace InsaneIO.Insane.Cryptography
 
         public string ComputeEncoded(byte[] data)
         {
-            return data.ComputeEncodedScrypt(Salt, Encoder, Iterations, BlockSize, Parallelism, DerivedKeyLength);
+            return data.ComputeScryptEncoded(Salt, Encoder, Iterations, BlockSize, Parallelism, DerivedKeyLength);
         }
 
         public string ComputeEncoded(string data)
         {
-            return data.ComputeEncodedScrypt(Salt, Encoder, Iterations, BlockSize, Parallelism, DerivedKeyLength);
+            return data.ComputeScryptEncoded(Salt, Encoder, Iterations, BlockSize, Parallelism, DerivedKeyLength);
         }
 
         public bool Verify(byte[] data, byte[] expected)

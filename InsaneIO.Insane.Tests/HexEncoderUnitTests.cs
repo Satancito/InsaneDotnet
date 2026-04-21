@@ -56,8 +56,7 @@ namespace InsaneIO.Insane.Tests
             IEncoder deserialized = HexEncoder.Deserialize(json);
             Assert.AreEqual(encoder.GetType().FullName, deserialized.GetType().FullName);
             Assert.IsInstanceOfType(deserialized, typeof(HexEncoder));
-            Assert.AreEqual(jsonObject.ToJsonString(), deserialized.ToJsonObject().ToJsonString());
-            jsonObject.Should().BeEquivalentTo(deserialized.ToJsonObject(), options => options.ComparingByMembers<JsonNode>().IgnoringCyclicReferences());
+            TestSerializationAssertions.AssertJsonEquals(jsonObject, deserialized.ToJsonObject());
         }
 
     }

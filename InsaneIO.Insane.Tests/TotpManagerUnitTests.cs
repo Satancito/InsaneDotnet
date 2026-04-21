@@ -59,8 +59,7 @@ namespace InsaneIO.Insane.Tests
             string json = manager.Serialize();
             JsonObject jsonObject = manager.ToJsonObject();
             TotpManager deserialized = TotpManager.Deserialize(json);
-            Assert.AreEqual(jsonObject.ToJsonString(), deserialized.ToJsonObject().ToJsonString());
-            jsonObject.Should().BeEquivalentTo(deserialized.ToJsonObject(), options => options.ComparingByMembers<JsonNode>().IgnoringCyclicReferences());
+            TestSerializationAssertions.AssertJsonEquals(jsonObject, deserialized.ToJsonObject());
         }
 
     }
