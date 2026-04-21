@@ -1,7 +1,6 @@
 ﻿global using InsaneIO.Insane.Cryptography;
 global using InsaneIO.Insane.Extensions;
 global using InsaneIO.Insane.Security;
-global using Microsoft.EntityFrameworkCore;
 global using System;
 global using System.Buffers.Binary;
 global using System.Collections.Generic;

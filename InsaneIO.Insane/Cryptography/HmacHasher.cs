@@ -1,16 +1,5 @@
-﻿using InsaneIO.Insane.Cryptography;
-using InsaneIO.Insane.Extensions;
-using InsaneIO.Insane.Serialization;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Versioning;
-using System.Text;
-using System.Text.Json;
+﻿using InsaneIO.Insane.Serialization;
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
 
 namespace InsaneIO.Insane.Cryptography
 {
@@ -74,12 +63,12 @@ namespace InsaneIO.Insane.Cryptography
 
         public string ComputeEncoded(byte[] data)
         {
-            return data.ComputeEncodedHmac(Key, Encoder, HashAlgorithm);
+            return data.ComputeHmacEncoded(Key, Encoder, HashAlgorithm);
         }
 
         public string ComputeEncoded(string data)
         {
-            return data.ComputeEncodedHmac(Key, Encoder, HashAlgorithm);
+            return data.ComputeHmacEncoded(Key, Encoder, HashAlgorithm);
         }
 
         public bool Verify(byte[] data, byte[] expected)

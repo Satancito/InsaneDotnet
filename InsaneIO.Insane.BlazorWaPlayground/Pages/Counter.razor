@@ -1,0 +1,53 @@
+﻿@page "/counter"
+@using InsaneIO.Insane.Cryptography
+@using InsaneIO.Insane.Extensions
+@inject IJSRuntime js;
+<PageTitle>Counter</PageTitle>
+
+<h1>Counter</h1>
+
+<p role="status">Current count: @currentCount</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+
+@code {
+    private int currentCount = 0;
+
+    private async void IncrementCount()
+    {
+        try
+        {
+            var encrypted = await js.EncryptAesCbcEncodedAsync("HelloWorld", "123456789", Base64Encoder.DefaultInstance, AesCbcPadding.AnsiX923);
+            var decrypted = (await js.DecryptAesCbcFromEncodedAsync(encrypted, "123456789", Base64Encoder.DefaultInstance, AesCbcPadding.AnsiX923)).ToStringUtf8();
+            var keypair = await js.CreateRsaKeyPairAsync(2048, RsaKeyPairEncoding.Ber);
+            var keypair2 = await js.CreateRsaKeyPairAsync(2048, RsaKeyPairEncoding.Pem);
+            var keypair3 = await js.CreateRsaKeyPairAsync(2048, RsaKeyPairEncoding.Xml);
+            Console.WriteLine(keypair3.PublicKey);
+            Console.WriteLine(keypair3.PrivateKey);
+            //for (int i = 0; i <= 1000; i++)
+            //{
+            var r1 = await js.ValidateRsaPublicKeyAsync(keypair.PublicKey);
+            var r2 = await js.ValidateRsaPrivateKeyAsync(keypair.PrivateKey);
+            var r3 = await js.ValidateRsaPublicKeyAsync(keypair2.PublicKey);
+            var r4 = await js.ValidateRsaPrivateKeyAsync(keypair2.PrivateKey);
+            var r5 = await js.ValidateRsaPublicKeyAsync(keypair3.PublicKey);
+            var r6 = await js.ValidateRsaPrivateKeyAsync(keypair3.PrivateKey);
+
+            var rsaEnc1 = await js.GetRsaKeyEncodingAsync(keypair.PublicKey);
+            var rsaEnc2 = await js.GetRsaKeyEncodingAsync(keypair.PrivateKey);
+            var rsaEnc3 = await js.GetRsaKeyEncodingAsync(keypair2.PublicKey);
+            var rsaEnc4 = await js.GetRsaKeyEncodingAsync(keypair2.PrivateKey);
+            var rsaEnc5 = await js.GetRsaKeyEncodingAsync(keypair3.PublicKey);
+            var rsaEnc6 = await js.GetRsaKeyEncodingAsync(keypair3.PrivateKey);
+            var encrypt = await js.EncryptRsaEncodedAsync("Hello from RSA", keypair3.PublicKey, Base64Encoder.DefaultInstance, RsaPadding.OaepSha512);
+            var decrypt = (await js.DecryptRsaFromEncodedAsync(encrypt, keypair3.PrivateKey, Base64Encoder.DefaultInstance, RsaPadding.OaepSha512)).ToStringUtf8();
+            var rsaEnc7 = await js.GetRsaKeyEncodingAsync(keypair3.PrivateKey);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            throw;
+        }
+        currentCount++;
+    }
+}

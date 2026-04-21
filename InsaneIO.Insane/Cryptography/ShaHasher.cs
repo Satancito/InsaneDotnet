@@ -62,12 +62,12 @@ namespace InsaneIO.Insane.Cryptography
 
         public string ComputeEncoded(byte[] data)
         {
-            return data.ComputeEncodedHash(Encoder, HashAlgorithm);
+            return data.ComputeHashEncoded(Encoder, HashAlgorithm);
         }
 
         public string ComputeEncoded(string data)
         {
-            return data.ComputeEncodedHash(Encoder, HashAlgorithm);
+            return data.ComputeHashEncoded(Encoder, HashAlgorithm);
         }
 
         public bool Verify(byte[] data, byte[] expected)

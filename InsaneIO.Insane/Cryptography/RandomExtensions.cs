@@ -25,7 +25,7 @@ namespace InsaneIO.Insane.Cryptography
             return min + (Math.Abs(0.NextValue()) % (max - min + 1));
         }
 
-        public static byte[] NextBytes(uint size)
+        public static byte[] NextBytes(this uint size)
         {
             byte[] ret = new byte[size];
             RandomNumberGenerator.Fill(ret);

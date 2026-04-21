@@ -1,6 +1,6 @@
 # InsaneIO.Insane
 MIT License
-Copyright (c) 2024 Joma Espinoza Bone<https://github.com/Satancito>
+Copyright (c) 2026 Joma Espinoza Bone<https://github.com/Satancito>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

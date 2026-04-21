@@ -16,23 +16,7 @@ Clear-Host
 Write-Host
 [System.String] $project = Get-Item "./*.csproj"
 Write-PrettyKeyValue "███ Publish NugetPackage for project" "`"$project`""
-$sourcePath = "$(Get-UserHome)/$(Split-Path $XSourceUrlRepository.Replace(".git", [String]::Empty) -Leaf)"
-Write-PrettyKeyValue "Source Path" $sourcePath
 
-if ((![System.IO.Directory]::Exists($sourcePath)) -or $Reset.IsPresent) {
-    Remove-Item $sourcePath -Force -Recurse -ErrorAction Ignore
-    try {
-        Push-Location "$(Get-UserHome)"
-        Write-PrettyKeyValue "Cloning" $XSourceUrlRepository
-        git clone $XSourceUrlRepository   
-        Test-LastExitCode 
-    }
-    catch {
-    }
-    finally {
-        Pop-Location
-    }
-}
 
 
 Write-Host
@@ -62,7 +46,7 @@ try {
     Push-Location "$sourcePath"
     git add -A
     git status
-    git commit -m "$newVersion"
+    git commit -m "New Version $newVersion"
     Test-LastExitCode
     git push
     Test-LastExitCode

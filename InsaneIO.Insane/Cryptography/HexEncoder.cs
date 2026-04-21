@@ -1,10 +1,5 @@
 ﻿using InsaneIO.Insane.Misc;
 using InsaneIO.Insane.Serialization;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using System.Runtime.CompilerServices;
-using System.Runtime.Versioning;
-using System.Security.Policy;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace InsaneIO.Insane.Cryptography
