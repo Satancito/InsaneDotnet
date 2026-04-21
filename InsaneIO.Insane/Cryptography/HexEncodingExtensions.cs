@@ -20,6 +20,16 @@
 
         public static byte[] DecodeFromHex(this string data)
         {
+            if (data is null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
+
+            if (data.Length % 2 != 0)
+            {
+                throw new ArgumentException("Hex data length must be even.", nameof(data));
+            }
+
             byte[] ret = new byte[data.Length / 2];
             for (int i = 0; i < data.Length / 2; i++)
             {

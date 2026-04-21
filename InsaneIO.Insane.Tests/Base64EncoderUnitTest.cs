@@ -259,13 +259,29 @@ BMqYEI4qTxhH714mB3L5viUCAwEAAQ==";
         [TestMethod]
         public void TestSerializeDeserialize()
         {
-            IEncoder encoder = Base64Encoder.DefaultInstance;
-            string json = encoder.Serialize();
-            JsonObject jsonObject = encoder.ToJsonObject();
-            IEncoder deserialized = Base64Encoder.Deserialize(json);
-            Assert.AreEqual(encoder.GetType().FullName, deserialized.GetType().FullName);
-            Assert.IsInstanceOfType(deserialized, typeof(Base64Encoder));
-            TestSerializationAssertions.AssertJsonEquals(jsonObject, deserialized.ToJsonObject());
+            new Base64Encoder().Serialize().Should().NotBeNullOrWhiteSpace();
+
+            Base64Encoder[] encoders =
+            [
+                Base64Encoder.DefaultInstance,
+                encoderNoPaddingNormalBase64,
+                encoderMimeLineBreaksNormalBase64,
+                encoderPemLineBreaksNormalBase64,
+                encoderWithPaddingUrlSafeBase64,
+                encoderWithPaddingFileNameSafeBase64,
+                encoderWithPaddingUrlEncodedBase64
+            ];
+
+            foreach (Base64Encoder encoder in encoders)
+            {
+                string json = encoder.Serialize(false);
+                JsonObject jsonObject = encoder.ToJsonObject();
+                IEncoder deserialized = Base64Encoder.Deserialize(json);
+                Assert.AreEqual(encoder.GetType().FullName, deserialized.GetType().FullName);
+                Assert.IsInstanceOfType(deserialized, typeof(Base64Encoder));
+                TestSerializationAssertions.AssertJsonEquals(jsonObject, deserialized.ToJsonObject());
+                deserialized.Encode(TestBytes).Should().Be(encoder.Encode(TestBytes));
+            }
         }
 
         private static string NormalizeNewLines(string value)

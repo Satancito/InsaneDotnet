@@ -24,6 +24,53 @@
                 _ => throw new ArgumentException("Byte is not a value Base32 value.")
             };
         }
+
+        private static string NormalizeBase32Input(string data)
+        {
+            if (data is null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
+
+            string trimmed = data.Trim();
+            if (trimmed.Length == 0)
+            {
+                return string.Empty;
+            }
+
+            int firstPaddingIndex = trimmed.IndexOf('=');
+            string unpadded = trimmed;
+            if (firstPaddingIndex >= 0)
+            {
+                for (int i = firstPaddingIndex; i < trimmed.Length; i++)
+                {
+                    if (trimmed[i] != '=')
+                    {
+                        throw new ArgumentException("Base32 padding must be at the end of the value.", nameof(data));
+                    }
+                }
+
+                int paddingLength = trimmed.Length - firstPaddingIndex;
+                if (trimmed.Length % 8 != 0)
+                {
+                    throw new ArgumentException("Padded Base32 data length must be a multiple of 8.", nameof(data));
+                }
+
+                if (paddingLength is not (1 or 3 or 4 or 6))
+                {
+                    throw new ArgumentException("Invalid Base32 padding length.", nameof(data));
+                }
+
+                unpadded = trimmed[..firstPaddingIndex];
+            }
+
+            if (unpadded.Length % 8 is 1 or 3 or 6)
+            {
+                throw new ArgumentException("Invalid Base32 data length.", nameof(data));
+            }
+
+            return unpadded;
+        }
         
         public static string EncodeToBase32(this byte[] data, bool removePadding = false, bool toLower = false)
         {
@@ -69,7 +116,7 @@
         public static byte[] DecodeFromBase32(this string data)
         {
 
-            data = data.Trim().TrimEnd('=');
+            data = NormalizeBase32Input(data);
             int byteCount = data.Length * 5 / 8;
             byte[] returnArray = new byte[byteCount];
 

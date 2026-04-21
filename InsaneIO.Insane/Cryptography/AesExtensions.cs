@@ -127,10 +127,30 @@ Insane.{fxName} = (data, key, padding) => {{
     return ret;
 }};
 ";
-            await js.InvokeAsync<object>("eval", jscode);
-            var result = await js.InvokeAsync<byte[]>($"Insane.{fxName}", data, key, padding.IntValue());
-            await js.InvokeAsync<object>("eval", $"delete Insane.{fxName};");
-            return result;
+            bool registered = false;
+            try
+            {
+                await js.InvokeAsync<object>("eval", jscode);
+                registered = true;
+                return await js.InvokeAsync<byte[]>($"Insane.{fxName}", data, key, padding.IntValue());
+            }
+            catch
+            {
+                throw;
+            }
+            finally
+            {
+                if (registered)
+                {
+                    try
+                    {
+                        await js.InvokeAsync<object>("eval", $"delete Insane.{fxName};");
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
         }
 
         public static async Task<byte[]> EncryptAesCbcAsync(this IJSRuntime js, string data, string key, AesCbcPadding padding = AesCbcPadding.Pkcs7)
@@ -155,10 +175,30 @@ Insane.{fxName} = (data, key, padding) => {{
     return ret;
 }};
 ";
-            await js.InvokeAsync<object>("eval", jscode);
-            var result = await js.InvokeAsync<byte[]>($"Insane.{fxName}", data, key, padding.IntValue());
-            await js.InvokeAsync<object>("eval", $"delete Insane.{fxName};");
-            return result;
+            bool registered = false;
+            try
+            {
+                await js.InvokeAsync<object>("eval", jscode);
+                registered = true;
+                return await js.InvokeAsync<byte[]>($"Insane.{fxName}", data, key, padding.IntValue());
+            }
+            catch
+            {
+                throw;
+            }
+            finally
+            {
+                if (registered)
+                {
+                    try
+                    {
+                        await js.InvokeAsync<object>("eval", $"delete Insane.{fxName};");
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
         }
 
         public static async Task<byte[]> DecryptAesCbcAsync(this IJSRuntime js, byte[] data, string key, AesCbcPadding padding = AesCbcPadding.Pkcs7)

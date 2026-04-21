@@ -253,10 +253,31 @@ Insane.{fxName} = (keySize, encoding) => {{
     return result;
 }};
 ";
-                await js.InvokeAsync<object>("eval", jscode);
-                var result = await js.InvokeAsync<string>($"Insane.{fxName}", keySize, encoding.IntValue());
-                await js.InvokeAsync<object>("eval", $"delete Insane.{fxName};");
-                return JsonSerializer.Deserialize<RsaKeyPair>(result)!;
+                bool registered = false;
+                try
+                {
+                    await js.InvokeAsync<object>("eval", jscode);
+                    registered = true;
+                    var result = await js.InvokeAsync<string>($"Insane.{fxName}", keySize, encoding.IntValue());
+                    return JsonSerializer.Deserialize<RsaKeyPair>(result)!;
+                }
+                catch
+                {
+                    throw;
+                }
+                finally
+                {
+                    if (registered)
+                    {
+                        try
+                        {
+                            await js.InvokeAsync<object>("eval", $"delete Insane.{fxName};");
+                        }
+                        catch
+                        {
+                        }
+                    }
+                }
             });
 
         }
@@ -280,10 +301,30 @@ Insane.{fxName} = (key) => {{
     return encoding.value;
 }};
 ";
-            await js.InvokeAsync<object>("eval", jscode);
-            var result = await js.InvokeAsync<RsaKeyEncoding>($"Insane.{fxName}", key);
-            await js.InvokeAsync<object>("eval", $"delete Insane.{fxName};");
-            return result;
+            bool registered = false;
+            try
+            {
+                await js.InvokeAsync<object>("eval", jscode);
+                registered = true;
+                return await js.InvokeAsync<RsaKeyEncoding>($"Insane.{fxName}", key);
+            }
+            catch
+            {
+                throw;
+            }
+            finally
+            {
+                if (registered)
+                {
+                    try
+                    {
+                        await js.InvokeAsync<object>("eval", $"delete Insane.{fxName};");
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
         }
 
         // IJSRuntime methods for encryption and decryption.
@@ -304,10 +345,30 @@ Insane.{fxName} = (data, publicKey, padding) => {{
     return ret;
 }};
 ";
-                await js.InvokeAsync<object>("eval", jscode);
-                var result = await js.InvokeAsync<byte[]>($"Insane.{fxName}", data, publicKey, padding.IntValue());
-                await js.InvokeAsync<object>("eval", $"delete Insane.{fxName};");
-                return result;
+                bool registered = false;
+                try
+                {
+                    await js.InvokeAsync<object>("eval", jscode);
+                    registered = true;
+                    return await js.InvokeAsync<byte[]>($"Insane.{fxName}", data, publicKey, padding.IntValue());
+                }
+                catch
+                {
+                    throw;
+                }
+                finally
+                {
+                    if (registered)
+                    {
+                        try
+                        {
+                            await js.InvokeAsync<object>("eval", $"delete Insane.{fxName};");
+                        }
+                        catch
+                        {
+                        }
+                    }
+                }
             });
         }
 
@@ -344,10 +405,30 @@ Insane.{fxName} = (data, privateKey, padding) => {{
     return ret;
 }};
 ";
-                await js.InvokeAsync<object>("eval", jscode);
-                var result = await js.InvokeAsync<byte[]>($"Insane.{fxName}", data, privateKey, padding.IntValue());
-                await js.InvokeAsync<object>("eval", $"delete Insane.{fxName};");
-                return result;
+                bool registered = false;
+                try
+                {
+                    await js.InvokeAsync<object>("eval", jscode);
+                    registered = true;
+                    return await js.InvokeAsync<byte[]>($"Insane.{fxName}", data, privateKey, padding.IntValue());
+                }
+                catch
+                {
+                    throw;
+                }
+                finally
+                {
+                    if (registered)
+                    {
+                        try
+                        {
+                            await js.InvokeAsync<object>("eval", $"delete Insane.{fxName};");
+                        }
+                        catch
+                        {
+                        }
+                    }
+                }
             });
         }
 

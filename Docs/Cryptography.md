@@ -290,7 +290,7 @@ string text = bytes.ToStringUtf8(); // Hi
 Notas:
 
 - Si el texto contiene caracteres no hexadecimales, `Convert.ToByte(..., 16)` lanzara excepcion.
-- Si la longitud es impar, el ultimo caracter queda fuera por la division entera usada internamente.
+- Si la longitud es impar, lanza `ArgumentException` porque cada byte requiere dos caracteres hexadecimales.
 
 ## Base64EncodingExtensions
 
@@ -496,7 +496,9 @@ public static byte[] DecodeFromBase32(this string data)
 Comportamiento:
 
 - Aplica `Trim()`.
-- Elimina `=` finales.
+- Acepta valores con padding final `=` o sin padding.
+- Valida que el padding este solo al final y tenga una longitud posible para Base32.
+- Valida que la longitud sin padding no sea un residuo imposible de Base32.
 - Acepta letras `A-Z`, `a-z` y digitos `2-7`.
 - Lanza `ArgumentException` si encuentra un caracter fuera de Base32.
 
@@ -639,10 +641,6 @@ Serializacion:
 string json = encoder.Serialize(indented: true);
 IEncoder restored = Base64Encoder.Deserialize(json);
 ```
-
-Punto de atencion:
-
-- `Base64Encoder.Deserialize` actualmente asigna `EncodingType` leyendo `LineBreaksLength`. Eso parece un error de mapeo y puede restaurar mal variantes no predeterminadas.
 
 ## AesExtensions
 

@@ -53,6 +53,14 @@ namespace InsaneIO.Insane.Tests
         }
 
         [TestMethod]
+        public void HexEncodingExtensions_ShouldRejectOddLengthInput()
+        {
+            FluentActions.Invoking(() => "ABC".DecodeFromHex())
+                .Should()
+                .Throw<ArgumentException>();
+        }
+
+        [TestMethod]
         public void Base32EncodingExtensions_ShouldRespectPaddingAndCase()
         {
             byte[] bytes = "A".ToByteArrayUtf8();
@@ -60,6 +68,23 @@ namespace InsaneIO.Insane.Tests
             bytes.EncodeToBase32(removePadding: false, toLower: false).Should().Be("IE======");
             bytes.EncodeToBase32(removePadding: true, toLower: true).Should().Be("ie");
             "ie".DecodeFromBase32().Should().Equal(bytes);
+            "IE======".DecodeFromBase32().Should().Equal(bytes);
+            string.Empty.DecodeFromBase32().Should().BeEmpty();
+        }
+
+        [TestMethod]
+        [DataRow("A")]
+        [DataRow("ABC")]
+        [DataRow("ABCDEF")]
+        [DataRow("IE=")]
+        [DataRow("IE=====")]
+        [DataRow("I=E=====")]
+        [DataRow("IE======A")]
+        public void Base32EncodingExtensions_ShouldRejectInvalidLengthOrPadding(string value)
+        {
+            FluentActions.Invoking(() => value.DecodeFromBase32())
+                .Should()
+                .Throw<ArgumentException>();
         }
 
         [TestMethod]

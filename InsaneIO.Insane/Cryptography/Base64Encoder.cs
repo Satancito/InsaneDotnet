@@ -63,7 +63,7 @@ namespace InsaneIO.Insane.Cryptography
             };
         }
 
-        public string Serialize(bool indented)
+        public string Serialize(bool indented = false)
         {
             return ToJsonObject().ToJsonString(IJsonSerializable.GetIndentOptions(indented));
         }
@@ -73,7 +73,7 @@ namespace InsaneIO.Insane.Cryptography
             JsonNode jsonNode = JsonNode.Parse(json)!;
             return new Base64Encoder
             {
-                EncodingType = Enum.Parse<Base64Encoding>(jsonNode[nameof(LineBreaksLength)]!.GetValue<int>().ToString()),
+                EncodingType = (Base64Encoding)jsonNode[nameof(EncodingType)]!.GetValue<int>(),
                 LineBreaksLength = jsonNode[nameof(LineBreaksLength)]!.GetValue<uint>(),
                 RemovePadding = jsonNode[nameof(RemovePadding)]!.GetValue<bool>()
             };
