@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<Nullable>disable</Nullable>
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<PackageId>$(AssemblyName)</PackageId>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<BuildNumber>1</BuildNumber>

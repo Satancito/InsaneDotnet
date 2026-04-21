@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/GithubActions/">
+    <File Path=".github/workflows/InsaneIO.Insane-PushToNuget.yml1" />
+  </Folder>
+  <Project Path="InsaneIO.Insane.BlazorWaPlayground/InsaneIO.Insane.BlazorWaPlayground.csproj" />
+  <Project Path="InsaneIO.Insane.Tests/InsaneIO.Insane.Tests.csproj" />
+  <Project Path="InsaneIO.Insane/InsaneIO.Insane.csproj" />
+</Solution>
