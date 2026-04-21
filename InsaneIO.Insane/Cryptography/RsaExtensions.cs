@@ -51,47 +51,54 @@ namespace InsaneIO.Insane.Extensions
 
         internal static (RsaKeyEncoding Encoding, RSA? Rsa) GetRsaKeyEncodingWithKey(this string key)
         {
-            var rsa = RSA.Create();
-            if (string.IsNullOrWhiteSpace(key))
+            RSA? rsa = null;
+            bool transferOwnership = false;
+            try
             {
-                return (RsaKeyEncoding.Unknown, null);
-            }
-            key = key.Trim();
-            if (Base64ValueRegex.IsMatch(key))
-            {
-                try
+                if (string.IsNullOrWhiteSpace(key))
                 {
-                    rsa.ImportPkcs8PrivateKey(key.DecodeFromBase64(), out int bytesRead2);
-                    return (RsaKeyEncoding.BerPrivate, rsa);
+                    return (RsaKeyEncoding.Unknown, null);
                 }
-                catch
+
+                rsa = RSA.Create();
+                key = key.Trim();
+                if (Base64ValueRegex.IsMatch(key))
                 {
                     try
                     {
-                        rsa.ImportSubjectPublicKeyInfo(key.DecodeFromBase64(), out int bytesRead2);
-                        return (RsaKeyEncoding.BerPublic, rsa);
+                        rsa.ImportPkcs8PrivateKey(key.DecodeFromBase64(), out int bytesRead2);
+                        transferOwnership = true;
+                        return (RsaKeyEncoding.BerPrivate, rsa);
                     }
                     catch
                     {
-                        return (RsaKeyEncoding.Unknown, null);
+                        try
+                        {
+                            rsa.ImportSubjectPublicKeyInfo(key.DecodeFromBase64(), out int bytesRead2);
+                            transferOwnership = true;
+                            return (RsaKeyEncoding.BerPublic, rsa);
+                        }
+                        catch
+                        {
+                            return (RsaKeyEncoding.Unknown, null);
+                        }
                     }
                 }
-            }
 
-            try
-            {
 
                 if (key.StartsWith(Constants.RsaXmlKeyMainTag))
                 {
                     if (RsaXmlPrivateKeyRegex.IsMatch(key))
                     {
                         rsa.FromXmlString(key);
+                        transferOwnership = true;
                         return (RsaKeyEncoding.XmlPrivate, rsa);
                     }
 
                     if (RsaXmlPublicKeyRegex.IsMatch(key))
                     {
                         rsa.FromXmlString(key);
+                        transferOwnership = true;
                         return (RsaKeyEncoding.XmlPublic, rsa);
                     }
                     return (RsaKeyEncoding.Unknown, null);
@@ -104,6 +111,7 @@ namespace InsaneIO.Insane.Extensions
                     {
                         pemsb.Replace(Constants.RsaPemPublicKeyHeader, string.Empty).Replace(Constants.RsaPemPublicKeyFooter, string.Empty);
                         rsa.ImportSubjectPublicKeyInfo(pemsb.ToString().Trim().DecodeFromBase64(), out int bytesRead1);
+                        transferOwnership = true;
                         return (RsaKeyEncoding.PemPublic, rsa);
                     }
 
@@ -111,6 +119,7 @@ namespace InsaneIO.Insane.Extensions
                     {
                         pemsb.Replace(Constants.RsaPemPrivateKeyHeader, string.Empty).Replace(Constants.RsaPemPrivateKeyFooter, string.Empty);
                         rsa.ImportPkcs8PrivateKey(pemsb.ToString().Trim().DecodeFromBase64(), out int bytesRead1);
+                        transferOwnership = true;
                         return (RsaKeyEncoding.PemPrivate, rsa);
                     }
                     return (RsaKeyEncoding.Unknown, null);
@@ -120,13 +129,22 @@ namespace InsaneIO.Insane.Extensions
             {
                 return (RsaKeyEncoding.Unknown, null);
             }
+            finally
+            {
+                if (!transferOwnership)
+                {
+                    rsa?.Dispose();
+                }
+            }
 
             return (RsaKeyEncoding.Unknown, null);
         }
 
         public static RsaKeyEncoding GetRsaKeyEncoding(this string key)
         {
-            return GetRsaKeyEncodingWithKey(key).Encoding;
+            var encodingResult = GetRsaKeyEncodingWithKey(key);
+            encodingResult.Rsa?.Dispose();
+            return encodingResult.Encoding;
         }
 
 
@@ -148,12 +166,16 @@ namespace InsaneIO.Insane.Extensions
 
         public static bool ValidateRsaPublicKey(this string publicKey)
         {
-            return ValidateRsaPublicKeyWithKey(publicKey).Result;
+            var validation = ValidateRsaPublicKeyWithKey(publicKey);
+            validation.Rsa?.Dispose();
+            return validation.Result;
         }
 
         public static bool ValidateRsaPrivateKey(this string privateKey)
         {
-            return ValidateRsaPrivateKeyWithKey(privateKey).Result;
+            var validation = ValidateRsaPrivateKeyWithKey(privateKey);
+            validation.Rsa?.Dispose();
+            return validation.Result;
         }
 
 
@@ -165,6 +187,7 @@ namespace InsaneIO.Insane.Extensions
             {
                 return validation.Rsa!;
             }
+            validation.Rsa?.Dispose();
             throw new ArgumentException("Unable to parse public key.");
         }
 
@@ -175,6 +198,7 @@ namespace InsaneIO.Insane.Extensions
             {
                 return validation.Rsa!;
             }
+            validation.Rsa?.Dispose();
             throw new ArgumentException("Unable to parse private key.");
         }
 
