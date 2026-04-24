@@ -1,6 +1,6 @@
 using CryptSharp.Utility;
 
-namespace InsaneIO.Insane.Extensions
+namespace InsaneIO.Insane.Cryptography.Extensions
 {
     public static class ScryptExtensions
     {
@@ -85,3 +85,4 @@ namespace InsaneIO.Insane.Extensions
         }
     }
 }
+

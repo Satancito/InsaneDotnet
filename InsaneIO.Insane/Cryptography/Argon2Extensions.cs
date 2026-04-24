@@ -1,6 +1,6 @@
 using Konscious.Security.Cryptography;
 
-namespace InsaneIO.Insane.Extensions
+namespace InsaneIO.Insane.Cryptography.Extensions
 {
     public static class Argon2Extensions
     {
@@ -116,3 +116,4 @@ namespace InsaneIO.Insane.Extensions
         }
     }
 }
+

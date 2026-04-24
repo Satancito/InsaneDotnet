@@ -1,4 +1,4 @@
-﻿namespace InsaneIO.Insane.Extensions
+namespace InsaneIO.Insane.Cryptography.Extensions
 {
     //Original author: https://stackoverflow.com/a/7135008 https://stackoverflow.com/users/904128/shane
     public static class Base32EncodingExtensions
@@ -154,3 +154,4 @@
 
     }
 }
+

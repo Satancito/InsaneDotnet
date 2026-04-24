@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using HashAlgorithm = InsaneIO.Insane.Cryptography.HashAlgorithm;
 
-namespace InsaneIO.Insane.Extensions
+namespace InsaneIO.Insane.Cryptography.Extensions
 {
     public static class HashExtensions
     {
@@ -75,3 +75,4 @@ namespace InsaneIO.Insane.Extensions
         }
     }
 }
+

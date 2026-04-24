@@ -1,6 +1,6 @@
 # Cryptography
 
-This document describes the `InsaneIO.Insane.Cryptography` namespace, the shared contracts in `InsaneIO.Insane.Cryptography.Abstractions`, and the related extensions in `InsaneIO.Insane.Extensions`.
+This document describes the `InsaneIO.Insane.Cryptography` namespace, the shared contracts in `InsaneIO.Insane.Cryptography.Abstractions`, the cryptography extension methods in `InsaneIO.Insane.Cryptography.Extensions`, and the general-purpose helpers in `InsaneIO.Insane.Extensions`.
 
 The library provides:
 
@@ -19,6 +19,7 @@ Common namespaces:
 ```csharp
 using InsaneIO.Insane.Cryptography;
 using InsaneIO.Insane.Cryptography.Abstractions;
+using InsaneIO.Insane.Cryptography.Extensions;
 using InsaneIO.Insane.Extensions;
 ```
 
@@ -213,7 +214,7 @@ Converts bytes to text using the provided encoding.
 
 ## HexEncodingExtensions
 
-Class: `InsaneIO.Insane.Extensions.HexEncodingExtensions`.
+Class: `InsaneIO.Insane.Cryptography.Extensions.HexEncodingExtensions`.
 
 ### EncodeToHex
 
@@ -254,7 +255,7 @@ string text = bytes.ToStringUtf8(); // Hi
 
 ## Base64EncodingExtensions
 
-Class: `InsaneIO.Insane.Extensions.Base64EncodingExtensions`.
+Class: `InsaneIO.Insane.Cryptography.Extensions.Base64EncodingExtensions`.
 
 Constants:
 
@@ -332,7 +333,7 @@ Behavior:
 
 ## Base32EncodingExtensions
 
-Class: `InsaneIO.Insane.Extensions.Base32EncodingExtensions`.
+Class: `InsaneIO.Insane.Cryptography.Extensions.Base32EncodingExtensions`.
 
 ### EncodeToBase32
 
@@ -418,7 +419,7 @@ Properties:
 
 ## AesExtensions
 
-Class: `InsaneIO.Insane.Extensions.AesExtensions`.
+Class: `InsaneIO.Insane.Cryptography.Extensions.AesExtensions`.
 
 Constants:
 
@@ -464,7 +465,7 @@ Properties:
 
 ## RsaExtensions
 
-Class: `InsaneIO.Insane.Extensions.RsaExtensions`.
+Class: `InsaneIO.Insane.Cryptography.Extensions.RsaExtensions`.
 
 Provides:
 
@@ -530,7 +531,7 @@ Properties:
 
 ## HashExtensions
 
-Class: `InsaneIO.Insane.Extensions.HashExtensions`.
+Class: `InsaneIO.Insane.Cryptography.Extensions.HashExtensions`.
 
 Provides:
 
@@ -551,7 +552,7 @@ bool ok = "Hello".VerifyHashFromEncoded(hash, HexEncoder.DefaultInstance, HashAl
 
 ## HmacExtensions
 
-Class: `InsaneIO.Insane.Extensions.HmacExtensions`.
+Class: `InsaneIO.Insane.Cryptography.Extensions.HmacExtensions`.
 
 Provides:
 
@@ -573,7 +574,7 @@ bool ok = "Hello".VerifyHmacFromEncoded("secret", mac, Base64Encoder.DefaultInst
 
 ## ScryptExtensions
 
-Class: `InsaneIO.Insane.Extensions.ScryptExtensions`.
+Class: `InsaneIO.Insane.Cryptography.Extensions.ScryptExtensions`.
 
 Provides:
 
@@ -609,7 +610,7 @@ bool ok = "password".VerifyScryptFromEncoded(
 
 ## Argon2Extensions
 
-Class: `InsaneIO.Insane.Extensions.Argon2Extensions`.
+Class: `InsaneIO.Insane.Cryptography.Extensions.Argon2Extensions`.
 
 Provides:
 
@@ -795,3 +796,4 @@ bool ok = restored.VerifyEncoded("user-password", passwordHash);
 - MD5 and SHA-1 are present for compatibility, but should not be used for new security-sensitive work.
 - For modern RSA use cases, prefer OAEP padding. `Pkcs1` is mainly for compatibility.
 - `IJSRuntime` methods use `eval` to register temporary functions. Review CSP restrictions if the code runs in browsers with strict policies.
+

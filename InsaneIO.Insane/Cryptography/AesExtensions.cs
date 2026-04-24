@@ -1,10 +1,10 @@
-﻿using InsaneIO.Insane.Cryptography;
+using InsaneIO.Insane.Cryptography;
 using Microsoft.JSInterop;
 using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using HashAlgorithm = InsaneIO.Insane.Cryptography.HashAlgorithm;
 
-namespace InsaneIO.Insane.Extensions
+namespace InsaneIO.Insane.Cryptography.Extensions
 {
     
     public static class AesExtensions
@@ -246,3 +246,4 @@ Insane.{fxName} = (data, key, padding) => {{
 
     }
 }
+

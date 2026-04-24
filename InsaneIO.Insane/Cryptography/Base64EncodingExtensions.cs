@@ -1,6 +1,6 @@
-﻿using System.Runtime.Versioning;
+using System.Runtime.Versioning;
 
-namespace InsaneIO.Insane.Extensions
+namespace InsaneIO.Insane.Cryptography.Extensions
 {
     
     public static class Base64EncodingExtensions
@@ -97,3 +97,4 @@ namespace InsaneIO.Insane.Extensions
         }
     }
 }
+

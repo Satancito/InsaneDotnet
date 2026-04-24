@@ -1,9 +1,9 @@
-﻿using Microsoft.JSInterop;
+using Microsoft.JSInterop;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
-namespace InsaneIO.Insane.Extensions
+namespace InsaneIO.Insane.Cryptography.Extensions
 {
 
     public static class RsaExtensions
@@ -438,3 +438,4 @@ Insane.{fxName} = (data, privateKey, padding) => {{
         }
     }
 }
+

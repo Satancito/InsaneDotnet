@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 
-namespace InsaneIO.Insane.Extensions
+namespace InsaneIO.Insane.Cryptography.Extensions
 {
     internal static class CryptographyComparisonExtensions
     {
@@ -19,3 +19,4 @@ namespace InsaneIO.Insane.Extensions
         }
     }
 }
+
