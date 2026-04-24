@@ -34,10 +34,10 @@
 		<IsPrerelease>false</IsPrerelease>
 		<PrereleaseName>Preview</PrereleaseName>
 		<BuildSuffix>Build</BuildSuffix>
-		<BuildNumber>1154</BuildNumber>
-		<VersionPrefix>10.2.0</VersionPrefix>
+		<BuildNumber>1155</BuildNumber>
+		<VersionPrefix>10.3.0</VersionPrefix>
 		<VersionSuffix></VersionSuffix>
-		<Version>10.2.0</Version>
+		<Version>10.3.0</Version>
 		<LangVersion>latest</LangVersion>
 		<EnablePreviewFeatures>false</EnablePreviewFeatures>
 		<!--<UseBlazorWebAssembly>true</UseBlazorWebAssembly>-->

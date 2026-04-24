@@ -153,6 +153,284 @@ Extends `IJsonSerializable` and requires:
 public static abstract IHasher Deserialize(string json);
 ```
 
+## Custom Implementations
+
+You can implement your own `IEncoder`, `IHasher`, or `IEncryptor` in another assembly and still participate in dynamic deserialization.
+
+Requirements:
+
+- implement the corresponding interface from `InsaneIO.Insane.Cryptography.Abstractions`
+- add `CryptographyTypeAttribute` with a stable identifier
+- expose `SelfType`
+- expose `AssemblyName`
+- include both `CryptographyType` and `AssemblyName` in `ToJsonObject()`
+- implement `public static Deserialize(string json)` for the concrete type
+
+### Custom IEncoder
+
+This example encodes bytes as a binary string using only `0` and `1`.
+
+```csharp
+using InsaneIO.Insane.Cryptography.Abstractions;
+using InsaneIO.Insane.Cryptography.Attributes;
+using InsaneIO.Insane.Exceptions;
+using InsaneIO.Insane.Serialization;
+using System.Linq;
+using System.Text;
+using System.Text.Json.Nodes;
+
+[CryptographyType("MyCompany-Cryptography-BinaryEncoder")]
+public sealed class BinaryEncoder : IEncoder
+{
+    public static Type SelfType => typeof(BinaryEncoder);
+    public string AssemblyName => IBaseSerializable.GetName(SelfType);
+
+    public string Encode(byte[] data)
+    {
+        return string.Concat(data.Select(value => Convert.ToString(value, 2)!.PadLeft(8, '0')));
+    }
+
+    public string Encode(string data)
+    {
+        return Encode(Encoding.UTF8.GetBytes(data));
+    }
+
+    public byte[] Decode(string data)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+
+        if (data.Length % 8 != 0 || data.Any(character => character != '0' && character != '1'))
+        {
+            throw new ArgumentException("Binary input must contain only 0 and 1 and be a multiple of 8 bits.", nameof(data));
+        }
+
+        return Enumerable.Range(0, data.Length / 8)
+            .Select(index => Convert.ToByte(data.Substring(index * 8, 8), 2))
+            .ToArray();
+    }
+
+    public JsonObject ToJsonObject() => new()
+    {
+        ["CryptographyType"] = "MyCompany-Cryptography-BinaryEncoder",
+        [nameof(AssemblyName)] = AssemblyName
+    };
+
+    public string Serialize(bool indented = false) =>
+        ToJsonObject().ToJsonString(IJsonSerializable.GetIndentOptions(indented));
+
+    public static IEncoder Deserialize(string json)
+    {
+        JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(SelfType, json);
+
+        string? cryptographyType = jsonNode["CryptographyType"]?.GetValue<string>();
+        string? assemblyName = jsonNode[nameof(AssemblyName)]?.GetValue<string>();
+
+        if (cryptographyType != "MyCompany-Cryptography-BinaryEncoder" &&
+            assemblyName != IBaseSerializable.GetName(SelfType))
+        {
+            throw new DeserializeException(SelfType, json);
+        }
+
+        return new BinaryEncoder();
+    }
+}
+```
+
+### Custom IHasher
+
+This example is intentionally simple. It is useful to understand the shape of the API, but it is not a secure hash and should not be used for real cryptographic purposes.
+
+```csharp
+using InsaneIO.Insane.Cryptography;
+using InsaneIO.Insane.Cryptography.Abstractions;
+using InsaneIO.Insane.Cryptography.Attributes;
+using InsaneIO.Insane.Exceptions;
+using InsaneIO.Insane.Serialization;
+using System.Text;
+using System.Text.Json.Nodes;
+
+[CryptographyType("MyCompany-Cryptography-XorHasher")]
+public sealed class XorHasher : IHasher
+{
+    public static Type SelfType => typeof(XorHasher);
+    public string AssemblyName => IBaseSerializable.GetName(SelfType);
+    public IEncoder Encoder { get; init; } = Base64Encoder.DefaultInstance;
+
+    public byte[] Compute(byte[] data)
+    {
+        byte accumulator = 0;
+
+        foreach (byte value in data)
+        {
+            accumulator ^= value;
+        }
+
+        return [accumulator];
+    }
+
+    public byte[] Compute(string data)
+    {
+        return Compute(Encoding.UTF8.GetBytes(data));
+    }
+
+    public string ComputeEncoded(byte[] data)
+    {
+        return Encoder.Encode(Compute(data));
+    }
+
+    public string ComputeEncoded(string data)
+    {
+        return Encoder.Encode(Compute(data));
+    }
+
+    public bool Verify(byte[] data, byte[] expected)
+    {
+        return CryptographicOperations.FixedTimeEquals(Compute(data), expected);
+    }
+
+    public bool Verify(string data, byte[] expected)
+    {
+        return CryptographicOperations.FixedTimeEquals(Compute(data), expected);
+    }
+
+    public bool VerifyEncoded(byte[] data, string expected)
+    {
+        return ComputeEncoded(data) == expected;
+    }
+
+    public bool VerifyEncoded(string data, string expected)
+    {
+        return ComputeEncoded(data) == expected;
+    }
+
+    public JsonObject ToJsonObject() => new()
+    {
+        ["CryptographyType"] = "MyCompany-Cryptography-XorHasher",
+        [nameof(AssemblyName)] = AssemblyName,
+        [nameof(Encoder)] = Encoder.ToJsonObject()
+    };
+
+    public string Serialize(bool indented = false) =>
+        ToJsonObject().ToJsonString(IJsonSerializable.GetIndentOptions(indented));
+
+    public static IHasher Deserialize(string json)
+    {
+        JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(SelfType, json);
+
+        string? cryptographyType = jsonNode["CryptographyType"]?.GetValue<string>();
+        string? assemblyName = jsonNode[nameof(AssemblyName)]?.GetValue<string>();
+
+        if (cryptographyType != "MyCompany-Cryptography-XorHasher" &&
+            assemblyName != IBaseSerializable.GetName(SelfType))
+        {
+            throw new DeserializeException(SelfType, json);
+        }
+
+        return new XorHasher
+        {
+            Encoder = IEncoder.DeserializeDynamic(jsonNode[nameof(Encoder)]!.ToJsonString())
+        };
+    }
+}
+```
+
+### Custom IEncryptor
+
+This example uses XOR with a configurable key. It is intentionally simple for demonstration only and is not secure encryption.
+
+```csharp
+using InsaneIO.Insane.Cryptography;
+using InsaneIO.Insane.Cryptography.Abstractions;
+using InsaneIO.Insane.Cryptography.Attributes;
+using InsaneIO.Insane.Exceptions;
+using InsaneIO.Insane.Serialization;
+using System.Text;
+using System.Text.Json.Nodes;
+
+[CryptographyType("MyCompany-Cryptography-XorEncryptor")]
+public sealed class XorEncryptor : IEncryptor
+{
+    public static Type SelfType => typeof(XorEncryptor);
+    public string AssemblyName => IBaseSerializable.GetName(SelfType);
+
+    public byte[] KeyBytes { get; init; } = Encoding.UTF8.GetBytes("demo-key");
+    public string KeyString { get => Encoding.UTF8.GetString(KeyBytes); init => KeyBytes = Encoding.UTF8.GetBytes(value); }
+    public IEncoder Encoder { get; init; } = Base64Encoder.DefaultInstance;
+
+    public byte[] Encrypt(byte[] data)
+    {
+        byte[] output = new byte[data.Length];
+
+        for (int index = 0; index < data.Length; index++)
+        {
+            output[index] = (byte)(data[index] ^ KeyBytes[index % KeyBytes.Length]);
+        }
+
+        return output;
+    }
+
+    public byte[] Encrypt(string data)
+    {
+        return Encrypt(Encoding.UTF8.GetBytes(data));
+    }
+
+    public string EncryptEncoded(byte[] data)
+    {
+        return Encoder.Encode(Encrypt(data));
+    }
+
+    public string EncryptEncoded(string data)
+    {
+        return Encoder.Encode(Encrypt(data));
+    }
+
+    public byte[] Decrypt(byte[] data)
+    {
+        return Encrypt(data);
+    }
+
+    public byte[] DecryptEncoded(string data)
+    {
+        return Decrypt(Encoder.Decode(data));
+    }
+
+    public JsonObject ToJsonObject() => new()
+    {
+        ["CryptographyType"] = "MyCompany-Cryptography-XorEncryptor",
+        [nameof(AssemblyName)] = AssemblyName,
+        [nameof(KeyBytes)] = Encoder.Encode(KeyBytes),
+        [nameof(Encoder)] = Encoder.ToJsonObject()
+    };
+
+    public string Serialize(bool indented = false) =>
+        ToJsonObject().ToJsonString(IJsonSerializable.GetIndentOptions(indented));
+
+    public static IEncryptor Deserialize(string json)
+    {
+        JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(SelfType, json);
+
+        string? cryptographyType = jsonNode["CryptographyType"]?.GetValue<string>();
+        string? assemblyName = jsonNode[nameof(AssemblyName)]?.GetValue<string>();
+
+        if (cryptographyType != "MyCompany-Cryptography-XorEncryptor" &&
+            assemblyName != IBaseSerializable.GetName(SelfType))
+        {
+            throw new DeserializeException(SelfType, json);
+        }
+
+        IEncoder encoder = IEncoder.DeserializeDynamic(jsonNode[nameof(Encoder)]!.ToJsonString());
+
+        return new XorEncryptor
+        {
+            Encoder = encoder,
+            KeyBytes = encoder.Decode(jsonNode[nameof(KeyBytes)]!.GetValue<string>())
+        };
+    }
+}
+```
+
+Once the assembly containing your custom implementation is loaded, `IEncoder.DeserializeDynamic`, `IHasher.DeserializeDynamic`, and `IEncryptor.DeserializeDynamic` can resolve it through `CryptographyType`. If the identifier is not present, the library falls back to `AssemblyName`.
+
 ### ISecureJsonSerializable
 
 Planned contract for key-protected serialization. It currently defines the shape, but there are no implementations in the reviewed classes.
