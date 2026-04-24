@@ -3,7 +3,7 @@ Insane library Compatible with .NET 10 and upwards.
 
 ## Documentation
 
-- [Cryptography](https://raw.githubusercontent.com/Satancito/InsaneDotnet/main/Docs/Cryptography.md)
+- [Docs/Cryptography.md](Docs/Cryptography.md)
 
 ## Add to your project
 

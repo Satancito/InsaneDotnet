@@ -14,6 +14,7 @@
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>false</GenerateDocumentationFile>
+		<PackageProjectUrl>https://github.com/Satancito/InsaneDotnet</PackageProjectUrl>
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/Satancito/InsaneDotnet</RepositoryUrl>
 
@@ -26,7 +27,17 @@
 		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
 
 		<UserSecretsId>dcead069-ffae-4de4-be81-720ec8ff2ac7</UserSecretsId>
-		<PackageReleaseNotes>.NET 10 compatible.</PackageReleaseNotes>
+		<PackageReleaseNotes><![CDATA[
+- Added CryptographyType-based dynamic deserialization with AssemblyName fallback
+- Added static cache for cryptography type resolution
+- Added CryptographyTypeAttribute for custom encoders, hashers, and encryptors
+- Moved cryptography extensions into InsaneIO.Insane.Cryptography.Extensions
+- Moved cryptography interfaces into InsaneIO.Insane.Cryptography.Abstractions
+- Split hash algorithm extensions into dedicated classes
+- Added and reorganized tests for separated cryptography extensions
+- Updated Cryptography.md with dynamic deserialization and custom implementation examples
+- Added InsaneIO.CryptSharp.SCrypt as a solution project and project reference
+]]></PackageReleaseNotes>
 		<PackageIcon>Icon.png</PackageIcon>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
@@ -34,7 +45,7 @@
 		<IsPrerelease>false</IsPrerelease>
 		<PrereleaseName>Preview</PrereleaseName>
 		<BuildSuffix>Build</BuildSuffix>
-		<BuildNumber>1156</BuildNumber>
+		<BuildNumber>1159</BuildNumber>
 		<VersionPrefix>10.3.0</VersionPrefix>
 		<VersionSuffix></VersionSuffix>
 		<Version>10.3.0</Version>
