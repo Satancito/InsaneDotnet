@@ -3,7 +3,7 @@ using InsaneIO.Insane.Serialization;
 using System.Reflection;
 using System.Text.Json.Nodes;
 
-namespace InsaneIO.Insane.Cryptography
+namespace InsaneIO.Insane.Cryptography.Abstractions
 {
     public interface IEncoder : IEncoderJsonSerializable
     {

@@ -3,17 +3,14 @@ using InsaneIO.Insane.Serialization;
 using System.Reflection;
 using System.Text.Json.Nodes;
 
-namespace InsaneIO.Insane.Cryptography
+namespace InsaneIO.Insane.Cryptography.Abstractions
 {
-    
-    public interface IHasher: IHasherJsonSerializable
+    public interface IHasher : IHasherJsonSerializable
     {
-
         public byte[] Compute(byte[] data);
         public byte[] Compute(string data);
         public string ComputeEncoded(byte[] data);
         public string ComputeEncoded(string data);
-
         public bool Verify(byte[] data, byte[] expected);
         public bool Verify(string data, byte[] expected);
         public bool VerifyEncoded(byte[] data, string expected);
