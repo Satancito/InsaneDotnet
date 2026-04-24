@@ -64,6 +64,8 @@ Defines the minimum serializable identity of a type.
 | `AssemblyName` | `string` | Fully qualified type name with assembly. Used to reconstruct concrete types during deserialization. |
 | `GetName(Type implementationType)` | `static string` | Returns the name in `FullName, AssemblyName` format. |
 
+For encoders, hashers, and encryptors, serialized payloads now also include a stable `CryptographyType` identifier so dynamic deserialization does not depend only on the CLR type name.
+
 Example `AssemblyName` value:
 
 ```text
@@ -95,7 +97,7 @@ Common contract for byte-to-text encoders.
 | `Encode(byte[] data)` | `string` | Encodes bytes to text. |
 | `Encode(string data)` | `string` | Converts text to UTF-8 and encodes it. |
 | `Decode(string data)` | `byte[]` | Decodes the text back to the original byte array. |
-| `DeserializeDynamic(string json)` | `IEncoder` | Deserializes by reading `AssemblyName` from JSON and dispatching to the correct concrete `Deserialize(string)` method. |
+| `DeserializeDynamic(string json)` | `IEncoder` | Deserializes by reading `CryptographyType` first and falling back to `AssemblyName` when needed before dispatching to the correct concrete `Deserialize(string)` method. |
 
 ### IEncoderJsonSerializable
 
@@ -117,7 +119,7 @@ Common contract for encryptors.
 | `EncryptEncoded(string data)` | `string` | Converts text to UTF-8, encrypts it, and encodes the result. |
 | `Decrypt(byte[] data)` | `byte[]` | Decrypts ciphertext bytes. |
 | `DecryptEncoded(string data)` | `byte[]` | Decodes the encrypted text with the configured encoder and then decrypts it. |
-| `DeserializeDynamic(string json)` | `IEncryptor` | Deserializes by reading `AssemblyName` from JSON and dispatching to the correct concrete `Deserialize(string)` method. |
+| `DeserializeDynamic(string json)` | `IEncryptor` | Deserializes by reading `CryptographyType` first and falling back to `AssemblyName` when needed before dispatching to the correct concrete `Deserialize(string)` method. |
 
 ### IEncryptorJsonSerializable
 
@@ -141,7 +143,7 @@ Common contract for hashers and key-derivation wrappers.
 | `Verify(string data, byte[] expected)` | `bool` | Converts text to UTF-8, recomputes, and compares. |
 | `VerifyEncoded(byte[] data, string expected)` | `bool` | Recomputes, encodes, and compares to the expected text. |
 | `VerifyEncoded(string data, string expected)` | `bool` | Converts text to UTF-8, recomputes, encodes, and compares. |
-| `DeserializeDynamic(string json)` | `IHasher` | Deserializes by reading `AssemblyName` from JSON and dispatching to the correct concrete `Deserialize(string)` method. |
+| `DeserializeDynamic(string json)` | `IHasher` | Deserializes by reading `CryptographyType` first and falling back to `AssemblyName` when needed before dispatching to the correct concrete `Deserialize(string)` method. |
 
 ### IHasherJsonSerializable
 
@@ -363,6 +365,11 @@ Behavior:
 ## Encoders
 
 All encoders implement `IEncoder` and `IEncoderJsonSerializable`.
+
+Serialized encoder payloads include both:
+
+- `CryptographyType`: stable identifier declared through `CryptographyTypeAttribute`
+- `AssemblyName`: CLR type fallback for backward compatibility
 
 ### HexEncoder
 
@@ -695,7 +702,7 @@ Properties:
 
 ## Dynamic Deserialization
 
-The JSON produced by encoders, hashers, and encryptors includes `AssemblyName`. The interfaces provide dynamic deserialization helpers:
+The JSON produced by encoders, hashers, and encryptors includes both `CryptographyType` and `AssemblyName`. The interfaces provide dynamic deserialization helpers:
 
 ```csharp
 IEncoder encoder = IEncoder.DeserializeDynamic(jsonEncoder);
@@ -705,7 +712,10 @@ IEncryptor encryptor = IEncryptor.DeserializeDynamic(jsonEncryptor);
 
 Behavior:
 
-- The concrete `Deserialize(string json)` methods validate that the payload type matches the expected type.
+- `DeserializeDynamic` first tries to resolve the concrete type through `CryptographyType`.
+- If the identifier is missing or cannot be resolved, it falls back to `AssemblyName`.
+- The type resolution uses an internal static cache so loaded assemblies are not rescanned on every deserialization call.
+- The concrete `Deserialize(string json)` methods validate that the payload type matches the expected type through `CryptographyType` first and `AssemblyName` as fallback.
 - If the payload belongs to another type or required fields are missing, they throw `DeserializeException`.
 
 ## Sensitive Fields

@@ -3,6 +3,7 @@ using InsaneIO.Insane.Cryptography;
 using InsaneIO.Insane.Exceptions;
 using InsaneIO.Insane.Extensions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Text.Json.Nodes;
 using InsaneHashAlgorithm = InsaneIO.Insane.Cryptography.HashAlgorithm;
 
 namespace InsaneIO.Insane.Tests
@@ -158,6 +159,28 @@ namespace InsaneIO.Insane.Tests
             FluentActions.Invoking(() => HmacHasher.Deserialize(shaJson)).Should().Throw<DeserializeException>();
             FluentActions.Invoking(() => ScryptHasher.Deserialize(argon2Json)).Should().Throw<DeserializeException>();
             FluentActions.Invoking(() => Argon2Hasher.Deserialize(scryptJson)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void Deserialize_ShouldUseCryptographyTypeForHashersWhenAssemblyNameDoesNotMatch()
+        {
+            var hasher = new HmacHasher
+            {
+                KeyString = Key,
+                HashAlgorithm = InsaneHashAlgorithm.Sha256,
+                Encoder = Base64Encoder.DefaultInstance
+            };
+
+            JsonNode jsonNode = JsonNode.Parse(hasher.Serialize())!;
+            jsonNode[nameof(HmacHasher.AssemblyName)] = "Some.Other.HmacHasher, Renamed.Assembly";
+
+            IHasher deserialized = HmacHasher.Deserialize(jsonNode.ToJsonString());
+            IHasher deserializedDynamic = IHasher.DeserializeDynamic(jsonNode.ToJsonString());
+
+            deserialized.Should().BeOfType<HmacHasher>();
+            deserializedDynamic.Should().BeOfType<HmacHasher>();
+            TestSerializationAssertions.AssertJsonEquals(hasher.ToJsonObject(), deserialized.ToJsonObject());
+            TestSerializationAssertions.AssertJsonEquals(hasher.ToJsonObject(), deserializedDynamic.ToJsonObject());
         }
     }
 }

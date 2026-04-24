@@ -1,10 +1,12 @@
 using InsaneIO.Insane.Exceptions;
+using InsaneIO.Insane.Cryptography.Attributes;
 using InsaneIO.Insane.Extensions;
 using InsaneIO.Insane.Serialization;
 using System.Text.Json.Nodes;
 
 namespace InsaneIO.Insane.Cryptography
 {
+    [CryptographyType("Insane-Cryptography-RsaEncryptor")]
     public class RsaEncryptor : IEncryptor
     {
         public static Type SelfType => typeof(RsaEncryptor);
@@ -21,9 +23,7 @@ namespace InsaneIO.Insane.Cryptography
         public static IEncryptor Deserialize(string json)
         {
             JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(SelfType, json);
-            string assemblyName = jsonNode[nameof(AssemblyName)]?.GetValue<string>() ?? throw new DeserializeException(SelfType, json);
-
-            if (assemblyName != IBaseSerializable.GetName(SelfType))
+            if (!CryptographyTypeResolver.MatchesSerializedType(SelfType, jsonNode))
             {
                 throw new DeserializeException(SelfType, json);
             }
@@ -49,6 +49,7 @@ namespace InsaneIO.Insane.Cryptography
         {
             return new JsonObject
             {
+                [CryptographyTypeResolver.JsonPropertyName] = CryptographyTypeResolver.GetTypeId(SelfType),
                 [nameof(AssemblyName)] = AssemblyName,
                 [nameof(KeyPair)] = KeyPair.ToJsonObject(),
                 [nameof(Padding)] = Padding.NumberValue<int>(),

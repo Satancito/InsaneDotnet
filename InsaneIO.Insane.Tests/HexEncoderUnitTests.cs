@@ -62,5 +62,20 @@ namespace InsaneIO.Insane.Tests
 
             FluentActions.Invoking(() => HexEncoder.Deserialize(json)).Should().Throw<DeserializeException>();
         }
+
+        [TestMethod]
+        public void Deserialize_ShouldUseCryptographyTypeWhenAssemblyNameDoesNotMatch()
+        {
+            JsonNode jsonNode = JsonNode.Parse(HexEncoder.DefaultInstance.Serialize())!;
+            jsonNode[nameof(HexEncoder.AssemblyName)] = "Some.Other.HexEncoder, Renamed.Assembly";
+
+            IEncoder deserialized = HexEncoder.Deserialize(jsonNode.ToJsonString());
+            IEncoder deserializedDynamic = IEncoder.DeserializeDynamic(jsonNode.ToJsonString());
+
+            deserialized.Should().BeOfType<HexEncoder>();
+            deserializedDynamic.Should().BeOfType<HexEncoder>();
+            TestSerializationAssertions.AssertJsonEquals(HexEncoder.DefaultInstance.ToJsonObject(), deserialized.ToJsonObject());
+            TestSerializationAssertions.AssertJsonEquals(HexEncoder.DefaultInstance.ToJsonObject(), deserializedDynamic.ToJsonObject());
+        }
     }
 }

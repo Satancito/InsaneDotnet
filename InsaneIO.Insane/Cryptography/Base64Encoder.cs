@@ -1,10 +1,12 @@
 using InsaneIO.Insane.Exceptions;
+using InsaneIO.Insane.Cryptography.Attributes;
 using InsaneIO.Insane.Misc;
 using InsaneIO.Insane.Serialization;
 using System.Text.Json.Nodes;
 
 namespace InsaneIO.Insane.Cryptography
 {
+    [CryptographyType("Insane-Cryptography-Base64Encoder")]
     public class Base64Encoder : IEncoder, IDefaultInstance<Base64Encoder>
     {
         public const uint NoLineBreaks = 0;
@@ -55,6 +57,7 @@ namespace InsaneIO.Insane.Cryptography
         {
             return new JsonObject()
             {
+                [CryptographyTypeResolver.JsonPropertyName] = CryptographyTypeResolver.GetTypeId(SelfType),
                 [nameof(AssemblyName)] = AssemblyName,
                 [nameof(LineBreaksLength)] = LineBreaksLength,
                 [nameof(RemovePadding)] = RemovePadding,
@@ -70,9 +73,7 @@ namespace InsaneIO.Insane.Cryptography
         public static IEncoder Deserialize(string json)
         {
             JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(SelfType, json);
-            string assemblyName = jsonNode[nameof(AssemblyName)]?.GetValue<string>() ?? throw new DeserializeException(SelfType, json);
-
-            if (assemblyName != IJsonSerializable.GetName(SelfType))
+            if (!CryptographyTypeResolver.MatchesSerializedType(SelfType, jsonNode))
             {
                 throw new DeserializeException(SelfType, json);
             }

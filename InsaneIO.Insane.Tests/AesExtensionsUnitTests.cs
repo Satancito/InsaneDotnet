@@ -5,6 +5,7 @@ using InsaneIO.Insane.Extensions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Linq;
+using System.Text.Json.Nodes;
 
 namespace InsaneIO.Insane.Tests
 {
@@ -101,6 +102,28 @@ namespace InsaneIO.Insane.Tests
             }.Serialize();
 
             FluentActions.Invoking(() => AesCbcEncryptor.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void AesCbcEncryptorDeserialize_ShouldUseCryptographyTypeWhenAssemblyNameDoesNotMatch()
+        {
+            var encryptor = new AesCbcEncryptor
+            {
+                KeyString = Key,
+                Encoder = HexEncoder.DefaultInstance,
+                Padding = AesCbcPadding.Pkcs7
+            };
+
+            JsonNode jsonNode = JsonNode.Parse(encryptor.Serialize())!;
+            jsonNode[nameof(AesCbcEncryptor.AssemblyName)] = "Some.Other.AesCbcEncryptor, Renamed.Assembly";
+
+            IEncryptor deserialized = AesCbcEncryptor.Deserialize(jsonNode.ToJsonString());
+            IEncryptor deserializedDynamic = IEncryptor.DeserializeDynamic(jsonNode.ToJsonString());
+
+            deserialized.Should().BeOfType<AesCbcEncryptor>();
+            deserializedDynamic.Should().BeOfType<AesCbcEncryptor>();
+            TestSerializationAssertions.AssertJsonEquals(encryptor.ToJsonObject(), deserialized.ToJsonObject());
+            TestSerializationAssertions.AssertJsonEquals(encryptor.ToJsonObject(), deserializedDynamic.ToJsonObject());
         }
     }
 }
