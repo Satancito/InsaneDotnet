@@ -3,22 +3,22 @@ Insane library Compatible with .NET 10 and upwards.
 
 ## Documentation
 
-- [Cryptography](Docs/Cryptography.md)
+- [Cryptography](https://raw.githubusercontent.com/Satancito/InsaneDotnet/main/Docs/Cryptography.md)
 
 ## Add to your project
 
 **Package Reference**   
 ```
-<PackageReference Include="InsaneIO.Insane" Version="10.1.0" />
+<PackageReference Include="InsaneIO.Insane" Version="10.3.0" />
 ```
 
 **Dotnet CLI**   
 ```
-dotnet add package InsaneIO.Insane --version 10.1.0
+dotnet add package InsaneIO.Insane --version 10.3.0
 ```
 
 **Package Manager**   
 ```
-Install-Package InsaneIO.Insane -Version 10.1.0
+Install-Package InsaneIO.Insane -Version 10.3.0
 ```
 <hr />
