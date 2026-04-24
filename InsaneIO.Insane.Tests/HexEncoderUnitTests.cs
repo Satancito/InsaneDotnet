@@ -1,23 +1,17 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using InsaneIO.Insane.Cryptography;
+using InsaneIO.Insane.Exceptions;
 using InsaneIO.Insane.Extensions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Versioning;
-using System.Text;
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
-using System.Web;
 
 namespace InsaneIO.Insane.Tests
 {
-    
     [TestClass]
     public class HexEncoderUnitTests
     {
-        private readonly byte[] testTytes = new byte[] { 0xff, 0xa, 1, 0x22 };
+        private readonly byte[] testTytes = [0xff, 0x0a, 1, 0x22];
         private const string hexStringUppercase = "FF0A0122";
         private const string hexStringLowercase = "ff0a0122";
         private static readonly HexEncoder encoderToUpper = new() { ToUpper = true };
@@ -54,12 +48,19 @@ namespace InsaneIO.Insane.Tests
             string json = encoder.Serialize();
             JsonObject jsonObject = encoder.ToJsonObject();
             IEncoder deserialized = HexEncoder.Deserialize(json);
+            IEncoder deserializedDynamic = IEncoder.DeserializeDynamic(json);
             Assert.AreEqual(encoder.GetType().FullName, deserialized.GetType().FullName);
             Assert.IsInstanceOfType(deserialized, typeof(HexEncoder));
             TestSerializationAssertions.AssertJsonEquals(jsonObject, deserialized.ToJsonObject());
+            TestSerializationAssertions.AssertJsonEquals(jsonObject, deserializedDynamic.ToJsonObject());
         }
 
+        [TestMethod]
+        public void Deserialize_ShouldRejectMismatchedAssemblyName()
+        {
+            string json = Base32Encoder.DefaultInstance.Serialize();
+
+            FluentActions.Invoking(() => HexEncoder.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
     }
-
-
 }

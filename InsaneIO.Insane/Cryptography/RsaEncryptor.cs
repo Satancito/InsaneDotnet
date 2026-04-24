@@ -1,12 +1,10 @@
-﻿using InsaneIO.Insane.Extensions;
-using System.Runtime.Versioning;
-using System.Text.Json;
-using System.Text.Json.Nodes;
+using InsaneIO.Insane.Exceptions;
+using InsaneIO.Insane.Extensions;
 using InsaneIO.Insane.Serialization;
+using System.Text.Json.Nodes;
 
 namespace InsaneIO.Insane.Cryptography
 {
-    
     public class RsaEncryptor : IEncryptor
     {
         public static Type SelfType => typeof(RsaEncryptor);
@@ -22,17 +20,23 @@ namespace InsaneIO.Insane.Cryptography
 
         public static IEncryptor Deserialize(string json)
         {
-            JsonNode jsonNode = JsonNode.Parse(json)!;
-            Type encoderType = Type.GetType(jsonNode[nameof(Encoder)]![nameof(IEncoder.AssemblyName)]!.GetValue<string>())!;
-            IEncoder encoder = (IEncoder)JsonSerializer.Deserialize(jsonNode[nameof(Encoder)], encoderType)!;
-            string publickey = jsonNode[nameof(KeyPair)]![nameof(RsaKeyPair.PublicKey)]!.GetValue<string?>()!;
-            string privatekey = jsonNode[nameof(KeyPair)]![nameof(RsaKeyPair.PrivateKey)]!.GetValue<string?>()!;
-            
+            JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(SelfType, json);
+            string assemblyName = jsonNode[nameof(AssemblyName)]?.GetValue<string>() ?? throw new DeserializeException(SelfType, json);
+
+            if (assemblyName != IBaseSerializable.GetName(SelfType))
+            {
+                throw new DeserializeException(SelfType, json);
+            }
+
+            IEncoder encoder = IEncoder.DeserializeDynamic(jsonNode[nameof(Encoder)]?.ToJsonString() ?? throw new DeserializeException(SelfType, json));
+            RsaKeyPair keyPair = RsaKeyPair.Deserialize(jsonNode[nameof(KeyPair)]?.ToJsonString() ?? throw new DeserializeException(SelfType, json))
+                ?? throw new DeserializeException(SelfType, json);
+
             return new RsaEncryptor
             {
-                KeyPair = new RsaKeyPair{ PublicKey = publickey, PrivateKey = privatekey },
+                KeyPair = keyPair,
                 Encoder = encoder,
-                Padding = Enum.Parse<RsaPadding>(jsonNode[nameof(Padding)]!.GetValue<int>().ToString())
+                Padding = (RsaPadding)(jsonNode[nameof(Padding)]?.GetValue<int>() ?? throw new DeserializeException(SelfType, json))
             };
         }
 
@@ -49,7 +53,6 @@ namespace InsaneIO.Insane.Cryptography
                 [nameof(KeyPair)] = KeyPair.ToJsonObject(),
                 [nameof(Padding)] = Padding.NumberValue<int>(),
                 [nameof(Encoder)] = Encoder.ToJsonObject(),
-
             };
         }
 
@@ -80,7 +83,7 @@ namespace InsaneIO.Insane.Cryptography
 
         public byte[] DecryptEncoded(string data)
         {
-            return data.DecryptRsaFromEncoded(KeyPair.PrivateKey!,Encoder, Padding);
+            return data.DecryptRsaFromEncoded(KeyPair.PrivateKey!, Encoder, Padding);
         }
     }
 }

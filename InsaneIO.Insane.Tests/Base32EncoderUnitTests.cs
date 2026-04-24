@@ -1,39 +1,33 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using InsaneIO.Insane.Extensions;
-using InsaneIO.Insane.Cryptography;
-using System.Runtime.Versioning;
-using System.Text.Json.Nodes;
 using FluentAssertions;
+using InsaneIO.Insane.Cryptography;
+using InsaneIO.Insane.Exceptions;
+using InsaneIO.Insane.Extensions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Linq;
+using System.Text.Json.Nodes;
 
 namespace InsaneIO.Insane.Tests
 {
-
     [TestClass]
-    
     public class Base32EncoderUnitTests
     {
-        public readonly static byte[] TestBytes = new byte[] { 104, 101, 108, 108, 111, 119, 111, 114, 108, 100 };
+        public static readonly byte[] TestBytes = [104, 101, 108, 108, 111, 119, 111, 114, 108, 100];
 
-        public readonly static string TestString = "helloworld";
-        public readonly static string UpperBase32Result = "NBSWY3DPO5XXE3DE";
-        public readonly static string LowerBase32Result = "nbswy3dpo5xxe3de";
+        public static readonly string TestString = "helloworld";
+        public static readonly string UpperBase32Result = "NBSWY3DPO5XXE3DE";
+        public static readonly string LowerBase32Result = "nbswy3dpo5xxe3de";
 
-        public readonly static string TestString2 = "A";
-        public readonly static byte[] TestBytes2 = new byte[] { 65 };
-        public readonly static string UpperBase32Result2 = "IE======";
-        public readonly static string LowerBase32Result2 = "ie======";
-        public readonly static string UpperBase32Result2NoPadding = "IE";
-        public readonly static string LowerBase32Result2NoPadding = "ie";
+        public static readonly string TestString2 = "A";
+        public static readonly byte[] TestBytes2 = [65];
+        public static readonly string UpperBase32Result2 = "IE======";
+        public static readonly string LowerBase32Result2 = "ie======";
+        public static readonly string UpperBase32Result2NoPadding = "IE";
+        public static readonly string LowerBase32Result2NoPadding = "ie";
 
-        public readonly static Base32Encoder encoderToLowerWithPadding = new Base32Encoder { ToLower = true, RemovePadding = false };
-        public readonly static Base32Encoder encoderToLowerNoPadding = new Base32Encoder { ToLower = true, RemovePadding = true };
-        public readonly static Base32Encoder encoderToUpperWithPadding = new Base32Encoder {  RemovePadding = false };
-        public readonly static Base32Encoder encoderToUpperNoPadding = new Base32Encoder { RemovePadding = true };
+        public static readonly Base32Encoder encoderToLowerWithPadding = new() { ToLower = true, RemovePadding = false };
+        public static readonly Base32Encoder encoderToLowerNoPadding = new() { ToLower = true, RemovePadding = true };
+        public static readonly Base32Encoder encoderToUpperWithPadding = new() { RemovePadding = false };
+        public static readonly Base32Encoder encoderToUpperNoPadding = new() { RemovePadding = true };
 
         [TestMethod]
         public void TestEncodeUppercaseWithPadding()
@@ -83,7 +77,6 @@ namespace InsaneIO.Insane.Tests
             Assert.IsTrue(Enumerable.SequenceEqual(encoderToLowerWithPadding.Decode(LowerBase32Result2), TestBytes2));
         }
 
-
         [TestMethod]
         public void TestEncodeUppercaseNoPadding2()
         {
@@ -93,8 +86,7 @@ namespace InsaneIO.Insane.Tests
         [TestMethod]
         public void TestEncodeLowercaseNoPadding2()
         {
-            var x = encoderToLowerNoPadding.Encode(TestBytes2);
-            Assert.AreEqual(x, LowerBase32Result2NoPadding);
+            Assert.AreEqual(encoderToLowerNoPadding.Encode(TestBytes2), LowerBase32Result2NoPadding);
         }
 
         [TestMethod]
@@ -116,9 +108,19 @@ namespace InsaneIO.Insane.Tests
             string json = encoder.Serialize();
             JsonObject jsonObject = encoder.ToJsonObject();
             IEncoder deserialized = Base32Encoder.Deserialize(json);
+            IEncoder deserializedDynamic = IEncoder.DeserializeDynamic(json);
             Assert.AreEqual(encoder.GetType().FullName, deserialized.GetType().FullName);
             Assert.IsInstanceOfType(deserialized, typeof(Base32Encoder));
             TestSerializationAssertions.AssertJsonEquals(jsonObject, deserialized.ToJsonObject());
+            TestSerializationAssertions.AssertJsonEquals(jsonObject, deserializedDynamic.ToJsonObject());
+        }
+
+        [TestMethod]
+        public void Deserialize_ShouldRejectMismatchedAssemblyName()
+        {
+            string json = HexEncoder.DefaultInstance.Serialize();
+
+            FluentActions.Invoking(() => Base32Encoder.Deserialize(json)).Should().Throw<DeserializeException>();
         }
     }
 }

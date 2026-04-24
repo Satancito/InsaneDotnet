@@ -58,7 +58,13 @@ namespace InsaneIO.Insane.Extensions
 
         public static byte[] DecryptAesCbc(this byte[] data, byte[] key, AesCbcPadding padding = AesCbcPadding.Pkcs7)
         {
+            ArgumentNullException.ThrowIfNull(data);
             ValidateKey(key);
+            if (data.Length < MaxIvLength)
+            {
+                throw new ArgumentException($"Ciphertext must be at least {MaxIvLength} bytes to contain an IV.", nameof(data));
+            }
+
             using Aes aes = Aes.Create();
             aes.Key = GenerateNormalizedKey(key);
             aes.Padding = padding switch

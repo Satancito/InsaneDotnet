@@ -1,11 +1,10 @@
-﻿using InsaneIO.Insane.Misc;
+using InsaneIO.Insane.Exceptions;
+using InsaneIO.Insane.Misc;
 using InsaneIO.Insane.Serialization;
-using System.Runtime.Versioning;
 using System.Text.Json.Nodes;
 
 namespace InsaneIO.Insane.Cryptography
 {
-    
     public class Base64Encoder : IEncoder, IDefaultInstance<Base64Encoder>
     {
         public const uint NoLineBreaks = 0;
@@ -70,15 +69,20 @@ namespace InsaneIO.Insane.Cryptography
 
         public static IEncoder Deserialize(string json)
         {
-            JsonNode jsonNode = JsonNode.Parse(json)!;
+            JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(SelfType, json);
+            string assemblyName = jsonNode[nameof(AssemblyName)]?.GetValue<string>() ?? throw new DeserializeException(SelfType, json);
+
+            if (assemblyName != IJsonSerializable.GetName(SelfType))
+            {
+                throw new DeserializeException(SelfType, json);
+            }
+
             return new Base64Encoder
             {
-                EncodingType = (Base64Encoding)jsonNode[nameof(EncodingType)]!.GetValue<int>(),
-                LineBreaksLength = jsonNode[nameof(LineBreaksLength)]!.GetValue<uint>(),
-                RemovePadding = jsonNode[nameof(RemovePadding)]!.GetValue<bool>()
+                EncodingType = (Base64Encoding)(jsonNode[nameof(EncodingType)]?.GetValue<int>() ?? throw new DeserializeException(SelfType, json)),
+                LineBreaksLength = jsonNode[nameof(LineBreaksLength)]?.GetValue<uint>() ?? throw new DeserializeException(SelfType, json),
+                RemovePadding = jsonNode[nameof(RemovePadding)]?.GetValue<bool>() ?? throw new DeserializeException(SelfType, json)
             };
         }
-
-   
     }
 }

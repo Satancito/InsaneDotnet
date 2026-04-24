@@ -1,10 +1,10 @@
-﻿using InsaneIO.Insane.Misc;
+using InsaneIO.Insane.Exceptions;
+using InsaneIO.Insane.Misc;
 using InsaneIO.Insane.Serialization;
 using System.Text.Json.Nodes;
 
 namespace InsaneIO.Insane.Cryptography
 {
-    
     public class HexEncoder : IEncoder, IDefaultInstance<HexEncoder>
     {
         public static Type SelfType => typeof(HexEncoder);
@@ -13,7 +13,6 @@ namespace InsaneIO.Insane.Cryptography
         private static readonly HexEncoder _DefaultInstance = new();
         public static HexEncoder DefaultInstance => _DefaultInstance;
         public bool ToUpper { get; init; } = false;
-
 
         public HexEncoder()
         {
@@ -45,10 +44,17 @@ namespace InsaneIO.Insane.Cryptography
 
         public static IEncoder Deserialize(string json)
         {
-            JsonNode jsonNode = JsonNode.Parse(json)!;
+            JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(SelfType, json);
+            string assemblyName = jsonNode[nameof(AssemblyName)]?.GetValue<string>() ?? throw new DeserializeException(SelfType, json);
+
+            if (assemblyName != IJsonSerializable.GetName(SelfType))
+            {
+                throw new DeserializeException(SelfType, json);
+            }
+
             return new HexEncoder
             {
-                ToUpper = jsonNode[nameof(ToUpper)]!.GetValue<bool>()
+                ToUpper = jsonNode[nameof(ToUpper)]?.GetValue<bool>() ?? throw new DeserializeException(SelfType, json)
             };
         }
 

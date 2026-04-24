@@ -1,21 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Versioning;
-using System.Security.Cryptography.Xml;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Nodes;
-using System.Threading.Tasks;
-using System.Xml.Linq;
+using InsaneIO.Insane.Cryptography;
+using InsaneIO.Insane.Exceptions;
 using InsaneIO.Insane.Serialization;
+using System.Text.Json.Nodes;
 
 namespace InsaneIO.Insane.Security
 {
     /// <summary>
     /// Testing codes in the link - https://totp.danhersam.com/
     /// </summary>
-    
     public class TotpManager : IJsonSerializable
     {
         public static Type SelfType => typeof(TotpManager);
@@ -50,15 +42,30 @@ namespace InsaneIO.Insane.Security
 
         public static TotpManager Deserialize(string json)
         {
-            JsonNode jsonNode = JsonNode.Parse(json)!;
+            JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(SelfType, json);
+            string assemblyName = jsonNode[nameof(AssemblyName)]?.GetValue<string>() ?? throw new DeserializeException(SelfType, json);
+
+            if (assemblyName != IJsonSerializable.GetName(SelfType))
+            {
+                throw new DeserializeException(SelfType, json);
+            }
+
+            TwoFactorCodeLength codeLength = (TwoFactorCodeLength)(jsonNode[nameof(CodeLength)]?.GetValue<int>() ?? throw new DeserializeException(SelfType, json));
+            HashAlgorithm hashAlgorithm = (HashAlgorithm)(jsonNode[nameof(HashAlgorithm)]?.GetValue<int>() ?? throw new DeserializeException(SelfType, json));
+
+            if (!Enum.IsDefined(codeLength) || !Enum.IsDefined(hashAlgorithm))
+            {
+                throw new DeserializeException(SelfType, json);
+            }
+
             return new TotpManager
             {
-                Secret = Base32Encoder.DefaultInstance.Decode(jsonNode[nameof(Secret)]!.GetValue<string>()),
-                Label = jsonNode[nameof(Label)]!.GetValue<string>(),
-                Issuer = jsonNode[nameof(Issuer)]!.GetValue<string>(),
-                CodeLength = Enum.Parse<TwoFactorCodeLength>(jsonNode[nameof(CodeLength)]!.GetValue<uint>().ToString()),
-                HashAlgorithm = Enum.Parse<HashAlgorithm>(jsonNode[nameof(HashAlgorithm)]!.GetValue<uint>().ToString()),
-                TimePeriodInSeconds = jsonNode[nameof(TimePeriodInSeconds)]!.GetValue<uint>()
+                Secret = Base32Encoder.DefaultInstance.Decode(jsonNode[nameof(Secret)]?.GetValue<string>() ?? throw new DeserializeException(SelfType, json)),
+                Label = jsonNode[nameof(Label)]?.GetValue<string>() ?? throw new DeserializeException(SelfType, json),
+                Issuer = jsonNode[nameof(Issuer)]?.GetValue<string>() ?? throw new DeserializeException(SelfType, json),
+                CodeLength = codeLength,
+                HashAlgorithm = hashAlgorithm,
+                TimePeriodInSeconds = jsonNode[nameof(TimePeriodInSeconds)]?.GetValue<uint>() ?? throw new DeserializeException(SelfType, json)
             };
         }
 
@@ -86,6 +93,5 @@ namespace InsaneIO.Insane.Security
         {
             return Secret.ComputeTotpCode(now, CodeLength, HashAlgorithm, TimePeriodInSeconds);
         }
-
     }
 }

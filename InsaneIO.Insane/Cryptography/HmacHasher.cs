@@ -1,9 +1,9 @@
-﻿using InsaneIO.Insane.Serialization;
+using InsaneIO.Insane.Exceptions;
+using InsaneIO.Insane.Serialization;
 using System.Text.Json.Nodes;
 
 namespace InsaneIO.Insane.Cryptography
 {
-
     public class HmacHasher : IHasher
     {
         public static Type SelfType => typeof(HmacHasher);
@@ -24,14 +24,21 @@ namespace InsaneIO.Insane.Cryptography
 
         public static IHasher Deserialize(string json)
         {
-            JsonNode jsonNode = JsonNode.Parse(json)!;
-            Type encoderType = Type.GetType(jsonNode[nameof(Encoder)]![nameof(IEncoder.AssemblyName)]!.GetValue<string>())!;
-            IEncoder encoder = (IEncoder)JsonSerializer.Deserialize(jsonNode[nameof(Encoder)], encoderType)!;
+            JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(SelfType, json);
+            string assemblyName = jsonNode[nameof(AssemblyName)]?.GetValue<string>() ?? throw new DeserializeException(SelfType, json);
+
+            if (assemblyName != IBaseSerializable.GetName(SelfType))
+            {
+                throw new DeserializeException(SelfType, json);
+            }
+
+            IEncoder encoder = IEncoder.DeserializeDynamic(jsonNode[nameof(Encoder)]?.ToJsonString() ?? throw new DeserializeException(SelfType, json));
+
             return new HmacHasher
             {
-                HashAlgorithm = Enum.Parse<HashAlgorithm>(jsonNode[nameof(HashAlgorithm)]!.GetValue<int>().ToString()),
+                HashAlgorithm = (HashAlgorithm)(jsonNode[nameof(HashAlgorithm)]?.GetValue<int>() ?? throw new DeserializeException(SelfType, json)),
                 Encoder = encoder,
-                Key = encoder.Decode(jsonNode[nameof(Key)]!.GetValue<string>())
+                Key = encoder.Decode(jsonNode[nameof(Key)]?.GetValue<string>() ?? throw new DeserializeException(SelfType, json))
             };
         }
 

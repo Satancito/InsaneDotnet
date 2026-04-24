@@ -13,6 +13,7 @@ using System.Security.Cryptography;
 using System.Runtime.Versioning;
 using FluentAssertions;
 using FluentAssertions.Equivalency;
+using InsaneIO.Insane.Exceptions;
 using System.Text.RegularExpressions;
 
 namespace InsaneIO.Insane.Tests
@@ -277,11 +278,21 @@ BMqYEI4qTxhH714mB3L5viUCAwEAAQ==";
                 string json = encoder.Serialize(false);
                 JsonObject jsonObject = encoder.ToJsonObject();
                 IEncoder deserialized = Base64Encoder.Deserialize(json);
+                IEncoder deserializedDynamic = IEncoder.DeserializeDynamic(json);
                 Assert.AreEqual(encoder.GetType().FullName, deserialized.GetType().FullName);
                 Assert.IsInstanceOfType(deserialized, typeof(Base64Encoder));
                 TestSerializationAssertions.AssertJsonEquals(jsonObject, deserialized.ToJsonObject());
+                TestSerializationAssertions.AssertJsonEquals(jsonObject, deserializedDynamic.ToJsonObject());
                 deserialized.Encode(TestBytes).Should().Be(encoder.Encode(TestBytes));
             }
+        }
+
+        [TestMethod]
+        public void Deserialize_ShouldRejectMismatchedAssemblyName()
+        {
+            string json = HexEncoder.DefaultInstance.Serialize();
+
+            FluentActions.Invoking(() => Base64Encoder.Deserialize(json)).Should().Throw<DeserializeException>();
         }
 
         private static string NormalizeNewLines(string value)

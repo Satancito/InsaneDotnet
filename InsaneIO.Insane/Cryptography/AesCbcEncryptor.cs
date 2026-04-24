@@ -1,15 +1,11 @@
-﻿using InsaneIO.Insane.Extensions;
+using InsaneIO.Insane.Exceptions;
+using InsaneIO.Insane.Extensions;
 using InsaneIO.Insane.Serialization;
-using System.Runtime.Versioning;
 using System.Security.Cryptography;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace InsaneIO.Insane.Cryptography
 {
-
-
-    
     public class AesCbcEncryptor : IEncryptor
     {
         public static Type SelfType => typeof(AesCbcEncryptor);
@@ -26,17 +22,25 @@ namespace InsaneIO.Insane.Cryptography
 
         public AesCbcEncryptor()
         {
-        } 
+        }
 
         public static IEncryptor Deserialize(string json)
         {
-            JsonNode jsonNode = JsonNode.Parse(json)!;
-            Type encoderType = Type.GetType(jsonNode[nameof(Encoder)]![nameof(IEncoder.AssemblyName)]!.GetValue<string>())!;
-            IEncoder encoder = (IEncoder)JsonSerializer.Deserialize(jsonNode[nameof(Encoder)], encoderType)!;
-            return new AesCbcEncryptor {
-                Key = encoder.Decode(jsonNode[nameof(Key)]!.GetValue<string>()),
+            JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(SelfType, json);
+            string assemblyName = jsonNode[nameof(AssemblyName)]?.GetValue<string>() ?? throw new DeserializeException(SelfType, json);
+
+            if (assemblyName != IBaseSerializable.GetName(SelfType))
+            {
+                throw new DeserializeException(SelfType, json);
+            }
+
+            IEncoder encoder = IEncoder.DeserializeDynamic(jsonNode[nameof(Encoder)]?.ToJsonString() ?? throw new DeserializeException(SelfType, json));
+
+            return new AesCbcEncryptor
+            {
+                Key = encoder.Decode(jsonNode[nameof(Key)]?.GetValue<string>() ?? throw new DeserializeException(SelfType, json)),
                 Encoder = encoder,
-                Padding = Enum.Parse<AesCbcPadding>(jsonNode[nameof(Padding)]!.GetValue<int>().ToString())
+                Padding = (AesCbcPadding)(jsonNode[nameof(Padding)]?.GetValue<int>() ?? throw new DeserializeException(SelfType, json))
             };
         }
 

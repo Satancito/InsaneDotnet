@@ -1,5 +1,6 @@
 using FluentAssertions;
 using InsaneIO.Insane.Cryptography;
+using InsaneIO.Insane.Exceptions;
 using InsaneIO.Insane.Extensions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -58,10 +59,12 @@ namespace InsaneIO.Insane.Tests
 
             string encrypted = encryptor.EncryptEncoded(Data);
             IEncryptor deserialized = RsaEncryptor.Deserialize(encryptor.Serialize());
+            IEncryptor deserializedDynamic = IEncryptor.DeserializeDynamic(encryptor.Serialize());
 
             encryptor.DecryptEncoded(encrypted).ToStringUtf8().Should().Be(Data);
             deserialized.DecryptEncoded(deserialized.EncryptEncoded(Data)).ToStringUtf8().Should().Be(Data);
             TestSerializationAssertions.AssertJsonEquals(encryptor.ToJsonObject(), deserialized.ToJsonObject());
+            TestSerializationAssertions.AssertJsonEquals(encryptor.ToJsonObject(), deserializedDynamic.ToJsonObject());
         }
 
         [TestMethod]
@@ -69,9 +72,35 @@ namespace InsaneIO.Insane.Tests
         {
             RsaKeyPair keyPair = 2048u.CreateRsaKeyPair(RsaKeyPairEncoding.Pem);
 
-            RsaKeyPair deserialized = RsaKeyPair.Deserialize(keyPair.Serialize())!;
+            RsaKeyPair deserialized = RsaKeyPair.Deserialize(keyPair.Serialize());
 
             TestSerializationAssertions.AssertJsonEquals(keyPair.ToJsonObject(), deserialized.ToJsonObject());
+        }
+
+        [TestMethod]
+        public void RsaKeyPairDeserialize_ShouldRejectMismatchedAssemblyName()
+        {
+            string json = new RsaEncryptor
+            {
+                KeyPair = 2048u.CreateRsaKeyPair(),
+                Padding = RsaPadding.OaepSha256,
+                Encoder = Base64Encoder.DefaultInstance
+            }.Serialize();
+
+            FluentActions.Invoking(() => RsaKeyPair.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void RsaEncryptorDeserialize_ShouldRejectMismatchedAssemblyName()
+        {
+            string json = new AesCbcEncryptor
+            {
+                KeyString = "12345678",
+                Encoder = HexEncoder.DefaultInstance,
+                Padding = AesCbcPadding.Pkcs7
+            }.Serialize();
+
+            FluentActions.Invoking(() => RsaEncryptor.Deserialize(json)).Should().Throw<DeserializeException>();
         }
     }
 }

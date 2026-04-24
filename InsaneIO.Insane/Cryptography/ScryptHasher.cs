@@ -1,18 +1,11 @@
-﻿using InsaneIO.Insane.Extensions;
+using InsaneIO.Insane.Exceptions;
+using InsaneIO.Insane.Extensions;
 using InsaneIO.Insane.Serialization;
-using System;
-using System.Collections.Generic;
-using System.Drawing.Imaging;
 using System.Linq;
-using System.Runtime.Versioning;
-using System.Text;
-using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
 
 namespace InsaneIO.Insane.Cryptography
 {
-    
     public class ScryptHasher : IHasher
     {
         public static Type SelfType => typeof(ScryptHasher);
@@ -35,16 +28,23 @@ namespace InsaneIO.Insane.Cryptography
 
         public static IHasher Deserialize(string json)
         {
-            JsonNode jsonNode = JsonNode.Parse(json)!;
-            Type encoderType = Type.GetType(jsonNode[nameof(Encoder)]![nameof(IEncoder.AssemblyName)]!.GetValue<string>())!;
-            IEncoder encoder = (IEncoder)JsonSerializer.Deserialize(jsonNode[nameof(Encoder)], encoderType)!;
+            JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(SelfType, json);
+            string assemblyName = jsonNode[nameof(AssemblyName)]?.GetValue<string>() ?? throw new DeserializeException(SelfType, json);
+
+            if (assemblyName != IBaseSerializable.GetName(SelfType))
+            {
+                throw new DeserializeException(SelfType, json);
+            }
+
+            IEncoder encoder = IEncoder.DeserializeDynamic(jsonNode[nameof(Encoder)]?.ToJsonString() ?? throw new DeserializeException(SelfType, json));
+
             return new ScryptHasher
             {
-                Salt = encoder.Decode( jsonNode[nameof(Salt)]!.GetValue<string>()),
-                Iterations = jsonNode[nameof(Iterations)]!.GetValue<uint>(),
-                BlockSize = jsonNode[nameof(BlockSize)]!.GetValue<uint>(),
-                Parallelism = jsonNode[nameof(Parallelism)]!.GetValue<uint>(),
-                DerivedKeyLength = jsonNode[nameof(DerivedKeyLength)]!.GetValue<uint>(),
+                Salt = encoder.Decode(jsonNode[nameof(Salt)]?.GetValue<string>() ?? throw new DeserializeException(SelfType, json)),
+                Iterations = jsonNode[nameof(Iterations)]?.GetValue<uint>() ?? throw new DeserializeException(SelfType, json),
+                BlockSize = jsonNode[nameof(BlockSize)]?.GetValue<uint>() ?? throw new DeserializeException(SelfType, json),
+                Parallelism = jsonNode[nameof(Parallelism)]?.GetValue<uint>() ?? throw new DeserializeException(SelfType, json),
+                DerivedKeyLength = jsonNode[nameof(DerivedKeyLength)]?.GetValue<uint>() ?? throw new DeserializeException(SelfType, json),
                 Encoder = encoder,
             };
         }

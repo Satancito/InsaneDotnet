@@ -91,6 +91,7 @@ Contrato para codificadores de bytes a texto.
 | `Encode(byte[] data)` | `string` | Codifica bytes a texto. |
 | `Encode(string data)` | `string` | Convierte el texto a UTF-8 y lo codifica. |
 | `Decode(string data)` | `byte[]` | Decodifica el texto al arreglo original de bytes. |
+| `DeserializeDynamic(string json)` | `IEncoder` | Deserializa usando el `AssemblyName` incluido en el JSON. |
 
 Parametros:
 
@@ -120,6 +121,7 @@ Contrato comun para cifradores.
 | `EncryptEncoded(string data)` | `string` | Convierte texto a UTF-8, cifra y codifica. |
 | `Decrypt(byte[] data)` | `byte[]` | Descifra bytes cifrados. |
 | `DecryptEncoded(string data)` | `byte[]` | Decodifica el texto cifrado con el encoder configurado y luego descifra. |
+| `DeserializeDynamic(string json)` | `IEncryptor` | Deserializa usando el `AssemblyName` incluido en el JSON. |
 
 ### IEncryptorJsonSerializable
 
@@ -143,6 +145,7 @@ Contrato comun para hashers y derivadores de claves.
 | `Verify(string data, byte[] expected)` | `bool` | Convierte texto a UTF-8, recalcula y compara. |
 | `VerifyEncoded(byte[] data, string expected)` | `bool` | Recalcula, codifica y compara contra texto esperado. |
 | `VerifyEncoded(string data, string expected)` | `bool` | Convierte texto a UTF-8, recalcula, codifica y compara. |
+| `DeserializeDynamic(string json)` | `IHasher` | Deserializa usando el `AssemblyName` incluido en el JSON. |
 
 ### IHasherJsonSerializable
 
@@ -1270,6 +1273,10 @@ Ejemplo:
 bool ok = "Hello".VerifyHashFromEncoded(hash, HexEncoder.DefaultInstance, HashAlgorithm.Sha256);
 ```
 
+Nota de seguridad:
+
+- `VerifyHash`, `VerifyHmac`, `VerifyScrypt`, `VerifyArgon2` y sus variantes `FromEncoded` usan comparacion en tiempo constante para reducir fugas por timing attacks.
+
 ### ComputeHmac
 
 Sobrecargas:
@@ -1671,16 +1678,30 @@ IEncoder restored = HexEncoder.Deserialize(json);
 
 `Argon2Hasher` serializa salt, parametros Argon2, variante y encoder.
 
-### Ejemplo Polimorfico Manual
+### Deserializacion Dinamica
 
-El JSON contiene `AssemblyName`, pero las llamadas de deserializacion actuales son estaticas por tipo concreto:
+El JSON contiene `AssemblyName` y las interfaces `IEncoder`, `IHasher` e `IEncryptor` exponen `DeserializeDynamic(string json)` para resolver automaticamente el tipo concreto.
+
+Ejemplo:
+
+```csharp
+IEncoder encoder = IEncoder.DeserializeDynamic(jsonEncoder);
+IHasher hasher = IHasher.DeserializeDynamic(jsonHasher);
+IEncryptor encryptor = IEncryptor.DeserializeDynamic(jsonEncryptor);
+```
+
+Las llamadas estaticas por tipo concreto siguen disponibles:
 
 ```csharp
 string json = new HmacHasher { KeyString = "secret" }.Serialize();
 IHasher hasher = HmacHasher.Deserialize(json);
 ```
 
-Para deserializar de forma polimorfica, una capa superior podria leer `AssemblyName`, resolver el tipo y llamar al metodo estatico apropiado.
+Comportamiento:
+
+- Los `Deserialize` concretos validan que `AssemblyName` coincida con el tipo esperado.
+- Si el JSON pertenece a otro tipo o le faltan valores requeridos, lanzan `DeserializeException`.
+- `TotpManager.Deserialize` tambien valida que los enums restaurados tengan valores definidos.
 
 ### Campos Sensibles
 
@@ -1766,8 +1787,8 @@ bool ok = restored.VerifyEncoded("user-password", passwordHash);
 
 - AES-CBC cifra, pero no autentica. Usa MAC o una API autenticada si se agrega en el futuro.
 - El resultado AES de esta libreria es `ciphertext || iv`, no `iv || ciphertext`.
+- `DecryptAesCbc` valida que el ciphertext tenga al menos 16 bytes para contener el IV y falla temprano si el valor esta truncado.
 - Las claves string se convierten a UTF-8. Si necesitas bytes exactos, usa `KeyBytes`, `SaltBytes` o sobrecargas `byte[]`.
-- Las verificaciones usan `SequenceEqual` o comparaciones de string. Si el escenario requiere resistencia a timing attacks, revisa una comparacion de tiempo constante.
 - MD5 y SHA-1 existen por compatibilidad, pero no deben usarse para seguridad nueva.
 - RSA debe usarse con OAEP para usos nuevos; `Pkcs1` queda principalmente por compatibilidad.
 - Los metodos `IJSRuntime` usan `eval` para registrar funciones temporales. Revisa politicas CSP si se ejecuta en navegadores con restricciones estrictas.

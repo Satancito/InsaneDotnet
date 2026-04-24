@@ -1,9 +1,9 @@
-﻿using InsaneIO.Insane.Serialization;
+using InsaneIO.Insane.Exceptions;
+using InsaneIO.Insane.Serialization;
 using System.Text.Json.Nodes;
 
 namespace InsaneIO.Insane.Cryptography
 {
-
     public class Argon2Hasher : IHasher
     {
         public static Type SelfType => typeof(Argon2Hasher);
@@ -28,18 +28,25 @@ namespace InsaneIO.Insane.Cryptography
 
         public static IHasher Deserialize(string json)
         {
-            JsonNode jsonNode = JsonNode.Parse(json)!;
-            Type encoderType = Type.GetType(jsonNode[nameof(Encoder)]![nameof(IEncoder.AssemblyName)]!.GetValue<string>())!;
-            IEncoder encoder = (IEncoder)JsonSerializer.Deserialize(jsonNode[nameof(Encoder)], encoderType)!;
+            JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(SelfType, json);
+            string assemblyName = jsonNode[nameof(AssemblyName)]?.GetValue<string>() ?? throw new DeserializeException(SelfType, json);
+
+            if (assemblyName != IBaseSerializable.GetName(SelfType))
+            {
+                throw new DeserializeException(SelfType, json);
+            }
+
+            IEncoder encoder = IEncoder.DeserializeDynamic(jsonNode[nameof(Encoder)]?.ToJsonString() ?? throw new DeserializeException(SelfType, json));
+
             return new Argon2Hasher
             {
-                Salt = encoder.Decode(jsonNode[nameof(Salt)]!.GetValue<string>()),
-                Encoder = (IEncoder)JsonSerializer.Deserialize(jsonNode[nameof(Encoder)], encoderType)!,
-                Iterations = jsonNode[nameof(Iterations)]!.GetValue<uint>(),
-                MemorySizeKiB = jsonNode[nameof(MemorySizeKiB)]!.GetValue<uint>(),
-                DegreeOfParallelism = jsonNode[nameof(DegreeOfParallelism)]!.GetValue<uint>(),
-                DerivedKeyLength = jsonNode[nameof(DerivedKeyLength)]!.GetValue<uint>(),
-                Argon2Variant = Enum.Parse<Argon2Variant>(jsonNode[nameof(Argon2Variant)]!.GetValue<uint>().ToString())
+                Salt = encoder.Decode(jsonNode[nameof(Salt)]?.GetValue<string>() ?? throw new DeserializeException(SelfType, json)),
+                Encoder = encoder,
+                Iterations = jsonNode[nameof(Iterations)]?.GetValue<uint>() ?? throw new DeserializeException(SelfType, json),
+                MemorySizeKiB = jsonNode[nameof(MemorySizeKiB)]?.GetValue<uint>() ?? throw new DeserializeException(SelfType, json),
+                DegreeOfParallelism = jsonNode[nameof(DegreeOfParallelism)]?.GetValue<uint>() ?? throw new DeserializeException(SelfType, json),
+                DerivedKeyLength = jsonNode[nameof(DerivedKeyLength)]?.GetValue<uint>() ?? throw new DeserializeException(SelfType, json),
+                Argon2Variant = (Argon2Variant)(jsonNode[nameof(Argon2Variant)]?.GetValue<int>() ?? throw new DeserializeException(SelfType, json))
             };
         }
 

@@ -1,10 +1,10 @@
 using FluentAssertions;
 using InsaneIO.Insane.Cryptography;
+using InsaneIO.Insane.Exceptions;
 using InsaneIO.Insane.Extensions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Linq;
-using System.Security.Cryptography;
 
 namespace InsaneIO.Insane.Tests
 {
@@ -60,6 +60,17 @@ namespace InsaneIO.Insane.Tests
         }
 
         [TestMethod]
+        public void DecryptAesCbc_ShouldRejectCiphertextShorterThanIv()
+        {
+            byte[] invalidCiphertext = new byte[AesExtensions.MaxIvLength - 1];
+
+            FluentActions.Invoking(() => invalidCiphertext.DecryptAesCbc(KeyBytes))
+                .Should()
+                .Throw<ArgumentException>()
+                .WithMessage("*IV*");
+        }
+
+        [TestMethod]
         public void AesCbcEncryptor_ShouldSerializeDeserializeAndRoundTrip()
         {
             var encryptor = new AesCbcEncryptor
@@ -71,10 +82,25 @@ namespace InsaneIO.Insane.Tests
 
             string encrypted = encryptor.EncryptEncoded(Data);
             IEncryptor deserialized = AesCbcEncryptor.Deserialize(encryptor.Serialize());
+            IEncryptor deserializedDynamic = IEncryptor.DeserializeDynamic(encryptor.Serialize());
 
             encryptor.DecryptEncoded(encrypted).ToStringUtf8().Should().Be(Data);
             deserialized.DecryptEncoded(deserialized.EncryptEncoded(Data)).ToStringUtf8().Should().Be(Data);
             TestSerializationAssertions.AssertJsonEquals(encryptor.ToJsonObject(), deserialized.ToJsonObject());
+            TestSerializationAssertions.AssertJsonEquals(encryptor.ToJsonObject(), deserializedDynamic.ToJsonObject());
+        }
+
+        [TestMethod]
+        public void AesCbcEncryptorDeserialize_ShouldRejectMismatchedAssemblyName()
+        {
+            string json = new RsaEncryptor
+            {
+                KeyPair = 2048u.CreateRsaKeyPair(),
+                Padding = RsaPadding.OaepSha256,
+                Encoder = Base64Encoder.DefaultInstance
+            }.Serialize();
+
+            FluentActions.Invoking(() => AesCbcEncryptor.Deserialize(json)).Should().Throw<DeserializeException>();
         }
     }
 }
