@@ -1,5 +1,5 @@
 using InsaneIO.Insane.Exceptions;
-using InsaneIO.Insane.Cryptography.Attributes;
+using InsaneIO.Insane.Attributes;
 using InsaneIO.Insane.Extensions;
 using InsaneIO.Insane.Serialization;
 using System.Security.Cryptography;
@@ -7,12 +7,9 @@ using System.Text.Json.Nodes;
 
 namespace InsaneIO.Insane.Cryptography
 {
-    [CryptographyType("Insane-Cryptography-AesCbcEncryptor")]
+    [TypeIdentifier("Insane-Cryptography-AesCbcEncryptor")]
     public class AesCbcEncryptor : IEncryptor
     {
-        public static Type SelfType => typeof(AesCbcEncryptor);
-        public string AssemblyName { get => IBaseSerializable.GetName(SelfType); }
-
         public string KeyString { get => Encoder.Encode(Key); init => Key = value.ToByteArrayUtf8(); }
         public byte[] KeyBytes { get => Key; init => Key = value; }
 
@@ -28,19 +25,19 @@ namespace InsaneIO.Insane.Cryptography
 
         public static IEncryptor Deserialize(string json)
         {
-            JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(SelfType, json);
-            if (!CryptographyTypeResolver.MatchesSerializedType(SelfType, jsonNode))
+            JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(typeof(AesCbcEncryptor), json);
+            if (!TypeIdentifierResolver.MatchesSerializedType(typeof(AesCbcEncryptor), jsonNode))
             {
-                throw new DeserializeException(SelfType, json);
+                throw new DeserializeException(typeof(AesCbcEncryptor), json);
             }
 
-            IEncoder encoder = IEncoder.DeserializeDynamic(jsonNode[nameof(Encoder)]?.ToJsonString() ?? throw new DeserializeException(SelfType, json));
+            IEncoder encoder = IEncoder.DeserializeDynamic(jsonNode[nameof(Encoder)]?.ToJsonString() ?? throw new DeserializeException(typeof(AesCbcEncryptor), json));
 
             return new AesCbcEncryptor
             {
-                Key = encoder.Decode(jsonNode[nameof(Key)]?.GetValue<string>() ?? throw new DeserializeException(SelfType, json)),
+                Key = encoder.Decode(jsonNode[nameof(Key)]?.GetValue<string>() ?? throw new DeserializeException(typeof(AesCbcEncryptor), json)),
                 Encoder = encoder,
-                Padding = (AesCbcPadding)(jsonNode[nameof(Padding)]?.GetValue<int>() ?? throw new DeserializeException(SelfType, json))
+                Padding = (AesCbcPadding)(jsonNode[nameof(Padding)]?.GetValue<int>() ?? throw new DeserializeException(typeof(AesCbcEncryptor), json))
             };
         }
 
@@ -53,8 +50,7 @@ namespace InsaneIO.Insane.Cryptography
         {
             return new JsonObject
             {
-                [CryptographyTypeResolver.JsonPropertyName] = CryptographyTypeResolver.GetTypeId(SelfType),
-                [nameof(AssemblyName)] = AssemblyName,
+                [TypeIdentifierResolver.TypeIdentifierJsonPropertyName] = TypeIdentifierResolver.GetTypeIdentifier(typeof(AesCbcEncryptor)),
                 [nameof(Key)] = Encoder.Encode(Key),
                 [nameof(Padding)] = Padding.NumberValue<int>(),
                 [nameof(Encoder)] = Encoder.ToJsonObject(),

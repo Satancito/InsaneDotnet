@@ -92,7 +92,7 @@ namespace InsaneIO.Insane.Tests
         }
 
         [TestMethod]
-        public void AesCbcEncryptorDeserialize_ShouldRejectMismatchedAssemblyName()
+        public void AesCbcEncryptorDeserialize_ShouldRejectMismatchedSerializedType()
         {
             string json = new RsaEncryptor
             {
@@ -105,7 +105,7 @@ namespace InsaneIO.Insane.Tests
         }
 
         [TestMethod]
-        public void AesCbcEncryptorDeserialize_ShouldUseCryptographyTypeWhenAssemblyNameDoesNotMatch()
+        public void AesCbcEncryptorDeserialize_ShouldRejectMissingTypeIdentifier()
         {
             var encryptor = new AesCbcEncryptor
             {
@@ -115,15 +115,10 @@ namespace InsaneIO.Insane.Tests
             };
 
             JsonNode jsonNode = JsonNode.Parse(encryptor.Serialize())!;
-            jsonNode[nameof(AesCbcEncryptor.AssemblyName)] = "Some.Other.AesCbcEncryptor, Renamed.Assembly";
+            jsonNode["TypeIdentifier"] = null;
 
-            IEncryptor deserialized = AesCbcEncryptor.Deserialize(jsonNode.ToJsonString());
-            IEncryptor deserializedDynamic = IEncryptor.DeserializeDynamic(jsonNode.ToJsonString());
-
-            deserialized.Should().BeOfType<AesCbcEncryptor>();
-            deserializedDynamic.Should().BeOfType<AesCbcEncryptor>();
-            TestSerializationAssertions.AssertJsonEquals(encryptor.ToJsonObject(), deserialized.ToJsonObject());
-            TestSerializationAssertions.AssertJsonEquals(encryptor.ToJsonObject(), deserializedDynamic.ToJsonObject());
+            FluentActions.Invoking(() => AesCbcEncryptor.Deserialize(jsonNode.ToJsonString())).Should().Throw<DeserializeException>();
+            FluentActions.Invoking(() => IEncryptor.DeserializeDynamic(jsonNode.ToJsonString())).Should().Throw<DeserializeException>();
         }
     }
 }

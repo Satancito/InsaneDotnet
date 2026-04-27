@@ -1,5 +1,5 @@
 using InsaneIO.Insane.Exceptions;
-using InsaneIO.Insane.Cryptography.Attributes;
+using InsaneIO.Insane.Attributes;
 using InsaneIO.Insane.Extensions;
 using InsaneIO.Insane.Serialization;
 using System.Linq;
@@ -7,12 +7,9 @@ using System.Text.Json.Nodes;
 
 namespace InsaneIO.Insane.Cryptography
 {
-    [CryptographyType("Insane-Cryptography-ScryptHasher")]
+    [TypeIdentifier("Insane-Cryptography-ScryptHasher")]
     public class ScryptHasher : IHasher
     {
-        public static Type SelfType => typeof(ScryptHasher);
-        public string AssemblyName { get => IBaseSerializable.GetName(SelfType); }
-
         public string SaltString { get => Encoder.Encode(Salt); init => Salt = value.ToByteArrayUtf8(); }
 
         public byte[] SaltBytes { get => Salt; init => Salt = value; }
@@ -30,21 +27,21 @@ namespace InsaneIO.Insane.Cryptography
 
         public static IHasher Deserialize(string json)
         {
-            JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(SelfType, json);
-            if (!CryptographyTypeResolver.MatchesSerializedType(SelfType, jsonNode))
+            JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(typeof(ScryptHasher), json);
+            if (!TypeIdentifierResolver.MatchesSerializedType(typeof(ScryptHasher), jsonNode))
             {
-                throw new DeserializeException(SelfType, json);
+                throw new DeserializeException(typeof(ScryptHasher), json);
             }
 
-            IEncoder encoder = IEncoder.DeserializeDynamic(jsonNode[nameof(Encoder)]?.ToJsonString() ?? throw new DeserializeException(SelfType, json));
+            IEncoder encoder = IEncoder.DeserializeDynamic(jsonNode[nameof(Encoder)]?.ToJsonString() ?? throw new DeserializeException(typeof(ScryptHasher), json));
 
             return new ScryptHasher
             {
-                Salt = encoder.Decode(jsonNode[nameof(Salt)]?.GetValue<string>() ?? throw new DeserializeException(SelfType, json)),
-                Iterations = jsonNode[nameof(Iterations)]?.GetValue<uint>() ?? throw new DeserializeException(SelfType, json),
-                BlockSize = jsonNode[nameof(BlockSize)]?.GetValue<uint>() ?? throw new DeserializeException(SelfType, json),
-                Parallelism = jsonNode[nameof(Parallelism)]?.GetValue<uint>() ?? throw new DeserializeException(SelfType, json),
-                DerivedKeyLength = jsonNode[nameof(DerivedKeyLength)]?.GetValue<uint>() ?? throw new DeserializeException(SelfType, json),
+                Salt = encoder.Decode(jsonNode[nameof(Salt)]?.GetValue<string>() ?? throw new DeserializeException(typeof(ScryptHasher), json)),
+                Iterations = jsonNode[nameof(Iterations)]?.GetValue<uint>() ?? throw new DeserializeException(typeof(ScryptHasher), json),
+                BlockSize = jsonNode[nameof(BlockSize)]?.GetValue<uint>() ?? throw new DeserializeException(typeof(ScryptHasher), json),
+                Parallelism = jsonNode[nameof(Parallelism)]?.GetValue<uint>() ?? throw new DeserializeException(typeof(ScryptHasher), json),
+                DerivedKeyLength = jsonNode[nameof(DerivedKeyLength)]?.GetValue<uint>() ?? throw new DeserializeException(typeof(ScryptHasher), json),
                 Encoder = encoder,
             };
         }
@@ -58,8 +55,7 @@ namespace InsaneIO.Insane.Cryptography
         {
             return new JsonObject
             {
-                [CryptographyTypeResolver.JsonPropertyName] = CryptographyTypeResolver.GetTypeId(SelfType),
-                [nameof(AssemblyName)] = AssemblyName,
+                [TypeIdentifierResolver.TypeIdentifierJsonPropertyName] = TypeIdentifierResolver.GetTypeIdentifier(typeof(ScryptHasher)),
                 [nameof(Salt)] = Encoder.Encode(Salt),
                 [nameof(Iterations)] = Iterations,
                 [nameof(BlockSize)] = BlockSize,

@@ -35,14 +35,14 @@ namespace InsaneIO.Insane.Tests
 
 
         [TestMethod]
-        public void TestEncryptDecryptAesNoPaddingHexEncoder()
+        public void EncryptDecryptAes_ShouldRoundTripWithNoPaddingAndHexEncoder()
         {
             string encrypted = encryptorNoPaddingHexEncoder.EncryptEncoded(Data256bitsBlocksSizeOk);
             encryptorNoPaddingHexEncoder.DecryptEncoded(encrypted).ToStringUtf8().Should().BeEquivalentTo(Data256bitsBlocksSizeOk);
         }
 
         [TestMethod]
-        public void TestEncryptDecryptAesNoPaddingHexEncoder_ShouldThrowException()
+        public void EncryptDecryptAes_ShouldThrowWithInvalidLengthForNoPaddingAndHexEncoder()
         {
             FluentActions.Invoking(() =>
             {
@@ -52,7 +52,7 @@ namespace InsaneIO.Insane.Tests
         }
 
         [TestMethod]
-        public void TestEncryptDecryptAesPkcs7PaddingHexEncoder()
+        public void EncryptDecryptAes_ShouldRoundTripWithPkcs7PaddingAndHexEncoder()
         {
             string encrypted = encryptorPkcs7PaddingHexEncoder.EncryptEncoded(Data);
             string decrypted = encryptorPkcs7PaddingHexEncoder.DecryptEncoded(encrypted).ToStringUtf8();
@@ -61,7 +61,7 @@ namespace InsaneIO.Insane.Tests
 
 
         [TestMethod]
-        public void TestEncryptDecryptAesAnsiX923PaddingHexEncoder()
+        public void EncryptDecryptAes_ShouldRoundTripWithAnsiX923PaddingAndHexEncoder()
         {
             string encrypted = encryptorAnsiX923PaddingHexEncoder.EncryptEncoded(Data);
             string decrypted = encryptorAnsiX923PaddingHexEncoder.DecryptEncoded(encrypted).ToStringUtf8();
@@ -69,14 +69,14 @@ namespace InsaneIO.Insane.Tests
         }
 
         [TestMethod]
-        public void TestEncryptDecryptAesNoPaddingBase32Encoder()
+        public void EncryptDecryptAes_ShouldRoundTripWithNoPaddingAndBase32Encoder()
         {
             string encrypted = encryptorNoPaddingBase32Encoder.EncryptEncoded(Data256bitsBlocksSizeOk);
             encryptorNoPaddingBase32Encoder.DecryptEncoded(encrypted).ToStringUtf8().Should().BeEquivalentTo(Data256bitsBlocksSizeOk);
         }
 
         [TestMethod]
-        public void TestEncryptDecryptAesNoPaddingBase32Encoder_ShouldThrowException()
+        public void EncryptDecryptAes_ShouldThrowWithInvalidLengthForNoPaddingAndBase32Encoder()
         {
             FluentActions.Invoking(() =>
             {
@@ -86,7 +86,7 @@ namespace InsaneIO.Insane.Tests
         }
 
         [TestMethod]
-        public void TestEncryptDecryptAesPkcs7PaddingBase32Encoder()
+        public void EncryptDecryptAes_ShouldRoundTripWithPkcs7PaddingAndBase32Encoder()
         {
             string encrypted = encryptorPkcs7PaddingBase32Encoder.EncryptEncoded(Data);
             string decrypted = encryptorPkcs7PaddingBase32Encoder.DecryptEncoded(encrypted).ToStringUtf8();
@@ -95,7 +95,7 @@ namespace InsaneIO.Insane.Tests
 
 
         [TestMethod]
-        public void TestEncryptDecryptAesAnsiX923PaddingBase32Encoder()
+        public void EncryptDecryptAes_ShouldRoundTripWithAnsiX923PaddingAndBase32Encoder()
         {
             string encrypted = encryptorAnsiX923PaddingBase32Encoder.EncryptEncoded(Data);
             string decrypted = encryptorAnsiX923PaddingBase32Encoder.DecryptEncoded(encrypted).ToStringUtf8();
@@ -103,14 +103,14 @@ namespace InsaneIO.Insane.Tests
         }
 
         [TestMethod]
-        public void TestEncryptDecryptAesNoPaddingBase64Encoder()
+        public void EncryptDecryptAes_ShouldRoundTripWithNoPaddingAndBase64Encoder()
         {
             string encrypted = encryptorNoPaddingBase64Encoder.EncryptEncoded(Data256bitsBlocksSizeOk);
             encryptorNoPaddingBase64Encoder.DecryptEncoded(encrypted).ToStringUtf8().Should().BeEquivalentTo(Data256bitsBlocksSizeOk);
         }
 
         [TestMethod]
-        public void TestEncryptDecryptAesNoPaddingBase64Encoder_ShouldThrowException()
+        public void EncryptDecryptAes_ShouldThrowWithInvalidLengthForNoPaddingAndBase64Encoder()
         {
             FluentActions.Invoking(() =>
             {
@@ -120,7 +120,7 @@ namespace InsaneIO.Insane.Tests
         }
 
         [TestMethod]
-        public void TestEncryptDecryptAesPkcs7PaddingBase64Encoder()
+        public void EncryptDecryptAes_ShouldRoundTripWithPkcs7PaddingAndBase64Encoder()
         {
             string encrypted = encryptorPkcs7PaddingBase64Encoder.EncryptEncoded(Data);
             string decrypted = encryptorPkcs7PaddingBase64Encoder.DecryptEncoded(encrypted).ToStringUtf8();
@@ -129,7 +129,7 @@ namespace InsaneIO.Insane.Tests
 
 
         [TestMethod]
-        public void TestEncryptDecryptAesAnsiX923PaddingBase64Encoder()
+        public void EncryptDecryptAes_ShouldRoundTripWithAnsiX923PaddingAndBase64Encoder()
         {
             string encrypted = encryptorAnsiX923PaddingBase64Encoder.EncryptEncoded(Data);
             string decrypted = encryptorAnsiX923PaddingBase64Encoder.DecryptEncoded(encrypted).ToStringUtf8();

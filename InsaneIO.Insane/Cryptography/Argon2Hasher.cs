@@ -1,16 +1,13 @@
 using InsaneIO.Insane.Exceptions;
-using InsaneIO.Insane.Cryptography.Attributes;
+using InsaneIO.Insane.Attributes;
 using InsaneIO.Insane.Serialization;
 using System.Text.Json.Nodes;
 
 namespace InsaneIO.Insane.Cryptography
 {
-    [CryptographyType("Insane-Cryptography-Argon2Hasher")]
+    [TypeIdentifier("Insane-Cryptography-Argon2Hasher")]
     public class Argon2Hasher : IHasher
     {
-        public static Type SelfType => typeof(Argon2Hasher);
-        public string AssemblyName { get => IJsonSerializable.GetName(SelfType); }
-
         public string SaltString { get => Encoder.Encode(Salt); init => Salt = value.ToByteArrayUtf8(); }
 
         public byte[] SaltBytes { get => Salt; init => Salt = value; }
@@ -30,23 +27,23 @@ namespace InsaneIO.Insane.Cryptography
 
         public static IHasher Deserialize(string json)
         {
-            JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(SelfType, json);
-            if (!CryptographyTypeResolver.MatchesSerializedType(SelfType, jsonNode))
+            JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(typeof(Argon2Hasher), json);
+            if (!TypeIdentifierResolver.MatchesSerializedType(typeof(Argon2Hasher), jsonNode))
             {
-                throw new DeserializeException(SelfType, json);
+                throw new DeserializeException(typeof(Argon2Hasher), json);
             }
 
-            IEncoder encoder = IEncoder.DeserializeDynamic(jsonNode[nameof(Encoder)]?.ToJsonString() ?? throw new DeserializeException(SelfType, json));
+            IEncoder encoder = IEncoder.DeserializeDynamic(jsonNode[nameof(Encoder)]?.ToJsonString() ?? throw new DeserializeException(typeof(Argon2Hasher), json));
 
             return new Argon2Hasher
             {
-                Salt = encoder.Decode(jsonNode[nameof(Salt)]?.GetValue<string>() ?? throw new DeserializeException(SelfType, json)),
+                Salt = encoder.Decode(jsonNode[nameof(Salt)]?.GetValue<string>() ?? throw new DeserializeException(typeof(Argon2Hasher), json)),
                 Encoder = encoder,
-                Iterations = jsonNode[nameof(Iterations)]?.GetValue<uint>() ?? throw new DeserializeException(SelfType, json),
-                MemorySizeKiB = jsonNode[nameof(MemorySizeKiB)]?.GetValue<uint>() ?? throw new DeserializeException(SelfType, json),
-                DegreeOfParallelism = jsonNode[nameof(DegreeOfParallelism)]?.GetValue<uint>() ?? throw new DeserializeException(SelfType, json),
-                DerivedKeyLength = jsonNode[nameof(DerivedKeyLength)]?.GetValue<uint>() ?? throw new DeserializeException(SelfType, json),
-                Argon2Variant = (Argon2Variant)(jsonNode[nameof(Argon2Variant)]?.GetValue<int>() ?? throw new DeserializeException(SelfType, json))
+                Iterations = jsonNode[nameof(Iterations)]?.GetValue<uint>() ?? throw new DeserializeException(typeof(Argon2Hasher), json),
+                MemorySizeKiB = jsonNode[nameof(MemorySizeKiB)]?.GetValue<uint>() ?? throw new DeserializeException(typeof(Argon2Hasher), json),
+                DegreeOfParallelism = jsonNode[nameof(DegreeOfParallelism)]?.GetValue<uint>() ?? throw new DeserializeException(typeof(Argon2Hasher), json),
+                DerivedKeyLength = jsonNode[nameof(DerivedKeyLength)]?.GetValue<uint>() ?? throw new DeserializeException(typeof(Argon2Hasher), json),
+                Argon2Variant = (Argon2Variant)(jsonNode[nameof(Argon2Variant)]?.GetValue<int>() ?? throw new DeserializeException(typeof(Argon2Hasher), json))
             };
         }
 
@@ -59,8 +56,7 @@ namespace InsaneIO.Insane.Cryptography
         {
             return new JsonObject
             {
-                [CryptographyTypeResolver.JsonPropertyName] = CryptographyTypeResolver.GetTypeId(SelfType),
-                [nameof(AssemblyName)] = AssemblyName,
+                [TypeIdentifierResolver.TypeIdentifierJsonPropertyName] = TypeIdentifierResolver.GetTypeIdentifier(typeof(Argon2Hasher)),
                 [nameof(Salt)] = Encoder.Encode(Salt),
                 [nameof(Iterations)] = Iterations,
                 [nameof(MemorySizeKiB)] = MemorySizeKiB,

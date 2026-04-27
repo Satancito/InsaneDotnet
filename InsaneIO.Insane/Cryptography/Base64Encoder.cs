@@ -1,19 +1,17 @@
 using InsaneIO.Insane.Exceptions;
-using InsaneIO.Insane.Cryptography.Attributes;
+using InsaneIO.Insane.Attributes;
 using InsaneIO.Insane.Misc;
 using InsaneIO.Insane.Serialization;
 using System.Text.Json.Nodes;
 
 namespace InsaneIO.Insane.Cryptography
 {
-    [CryptographyType("Insane-Cryptography-Base64Encoder")]
+    [TypeIdentifier("Insane-Cryptography-Base64Encoder")]
     public class Base64Encoder : IEncoder, IDefaultInstance<Base64Encoder>
     {
         public const uint NoLineBreaks = 0;
         public const uint MimeLineBreaksLength = 76;
         public const uint PemLineBreaksLength = 64;
-        public static Type SelfType => typeof(Base64Encoder);
-        public string AssemblyName { get => IJsonSerializable.GetName(SelfType); }
 
         public uint LineBreaksLength { get; init; } = NoLineBreaks;
         public bool RemovePadding { get; init; } = false;
@@ -57,8 +55,7 @@ namespace InsaneIO.Insane.Cryptography
         {
             return new JsonObject()
             {
-                [CryptographyTypeResolver.JsonPropertyName] = CryptographyTypeResolver.GetTypeId(SelfType),
-                [nameof(AssemblyName)] = AssemblyName,
+                [TypeIdentifierResolver.TypeIdentifierJsonPropertyName] = TypeIdentifierResolver.GetTypeIdentifier(typeof(Base64Encoder)),
                 [nameof(LineBreaksLength)] = LineBreaksLength,
                 [nameof(RemovePadding)] = RemovePadding,
                 [nameof(EncodingType)] = EncodingType.NumberValue<int>()
@@ -72,17 +69,17 @@ namespace InsaneIO.Insane.Cryptography
 
         public static IEncoder Deserialize(string json)
         {
-            JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(SelfType, json);
-            if (!CryptographyTypeResolver.MatchesSerializedType(SelfType, jsonNode))
+            JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(typeof(Base64Encoder), json);
+            if (!TypeIdentifierResolver.MatchesSerializedType(typeof(Base64Encoder), jsonNode))
             {
-                throw new DeserializeException(SelfType, json);
+                throw new DeserializeException(typeof(Base64Encoder), json);
             }
 
             return new Base64Encoder
             {
-                EncodingType = (Base64Encoding)(jsonNode[nameof(EncodingType)]?.GetValue<int>() ?? throw new DeserializeException(SelfType, json)),
-                LineBreaksLength = jsonNode[nameof(LineBreaksLength)]?.GetValue<uint>() ?? throw new DeserializeException(SelfType, json),
-                RemovePadding = jsonNode[nameof(RemovePadding)]?.GetValue<bool>() ?? throw new DeserializeException(SelfType, json)
+                EncodingType = (Base64Encoding)(jsonNode[nameof(EncodingType)]?.GetValue<int>() ?? throw new DeserializeException(typeof(Base64Encoder), json)),
+                LineBreaksLength = jsonNode[nameof(LineBreaksLength)]?.GetValue<uint>() ?? throw new DeserializeException(typeof(Base64Encoder), json),
+                RemovePadding = jsonNode[nameof(RemovePadding)]?.GetValue<bool>() ?? throw new DeserializeException(typeof(Base64Encoder), json)
             };
         }
     }

@@ -1,6 +1,5 @@
 using FluentAssertions;
 using InsaneIO.Insane.Cryptography;
-using InsaneIO.Insane.Extensions;
 using InsaneIO.Insane.Security;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;

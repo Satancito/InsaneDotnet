@@ -1,17 +1,14 @@
 using InsaneIO.Insane.Exceptions;
-using InsaneIO.Insane.Cryptography.Attributes;
+using InsaneIO.Insane.Attributes;
 using InsaneIO.Insane.Misc;
 using InsaneIO.Insane.Serialization;
 using System.Text.Json.Nodes;
 
 namespace InsaneIO.Insane.Cryptography
 {
-    [CryptographyType("Insane-Cryptography-HexEncoder")]
+    [TypeIdentifier("Insane-Cryptography-HexEncoder")]
     public class HexEncoder : IEncoder, IDefaultInstance<HexEncoder>
     {
-        public static Type SelfType => typeof(HexEncoder);
-        public string AssemblyName { get => IJsonSerializable.GetName(SelfType); }
-
         private static readonly HexEncoder _DefaultInstance = new();
         public static HexEncoder DefaultInstance => _DefaultInstance;
         public bool ToUpper { get; init; } = false;
@@ -34,8 +31,7 @@ namespace InsaneIO.Insane.Cryptography
         {
             return new JsonObject()
             {
-                [CryptographyTypeResolver.JsonPropertyName] = CryptographyTypeResolver.GetTypeId(SelfType),
-                [nameof(AssemblyName)] = AssemblyName,
+                [TypeIdentifierResolver.TypeIdentifierJsonPropertyName] = TypeIdentifierResolver.GetTypeIdentifier(typeof(HexEncoder)),
                 [nameof(ToUpper)] = ToUpper
             };
         }
@@ -47,15 +43,15 @@ namespace InsaneIO.Insane.Cryptography
 
         public static IEncoder Deserialize(string json)
         {
-            JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(SelfType, json);
-            if (!CryptographyTypeResolver.MatchesSerializedType(SelfType, jsonNode))
+            JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(typeof(HexEncoder), json);
+            if (!TypeIdentifierResolver.MatchesSerializedType(typeof(HexEncoder), jsonNode))
             {
-                throw new DeserializeException(SelfType, json);
+                throw new DeserializeException(typeof(HexEncoder), json);
             }
 
             return new HexEncoder
             {
-                ToUpper = jsonNode[nameof(ToUpper)]?.GetValue<bool>() ?? throw new DeserializeException(SelfType, json)
+                ToUpper = jsonNode[nameof(ToUpper)]?.GetValue<bool>() ?? throw new DeserializeException(typeof(HexEncoder), json)
             };
         }
 

@@ -1,17 +1,14 @@
 using InsaneIO.Insane.Exceptions;
-using InsaneIO.Insane.Cryptography.Attributes;
+using InsaneIO.Insane.Attributes;
 using InsaneIO.Insane.Serialization;
 using System.Linq;
 using System.Text.Json.Nodes;
 
 namespace InsaneIO.Insane.Cryptography
 {
-    [CryptographyType("Insane-Cryptography-ShaHasher")]
+    [TypeIdentifier("Insane-Cryptography-ShaHasher")]
     public class ShaHasher : IHasher
     {
-        public static Type SelfType => typeof(ShaHasher);
-        public string AssemblyName { get => IBaseSerializable.GetName(SelfType); }
-
         public HashAlgorithm HashAlgorithm { get; init; } = HashAlgorithm.Sha512;
         public IEncoder Encoder { get; init; } = Base64Encoder.DefaultInstance;
 
@@ -21,16 +18,16 @@ namespace InsaneIO.Insane.Cryptography
 
         public static IHasher Deserialize(string json)
         {
-            JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(SelfType, json);
-            if (!CryptographyTypeResolver.MatchesSerializedType(SelfType, jsonNode))
+            JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(typeof(ShaHasher), json);
+            if (!TypeIdentifierResolver.MatchesSerializedType(typeof(ShaHasher), jsonNode))
             {
-                throw new DeserializeException(SelfType, json);
+                throw new DeserializeException(typeof(ShaHasher), json);
             }
 
             return new ShaHasher
             {
-                HashAlgorithm = (HashAlgorithm)(jsonNode[nameof(HashAlgorithm)]?.GetValue<int>() ?? throw new DeserializeException(SelfType, json)),
-                Encoder = IEncoder.DeserializeDynamic(jsonNode[nameof(Encoder)]?.ToJsonString() ?? throw new DeserializeException(SelfType, json))
+                HashAlgorithm = (HashAlgorithm)(jsonNode[nameof(HashAlgorithm)]?.GetValue<int>() ?? throw new DeserializeException(typeof(ShaHasher), json)),
+                Encoder = IEncoder.DeserializeDynamic(jsonNode[nameof(Encoder)]?.ToJsonString() ?? throw new DeserializeException(typeof(ShaHasher), json))
             };
         }
 
@@ -43,8 +40,7 @@ namespace InsaneIO.Insane.Cryptography
         {
             return new JsonObject()
             {
-                [CryptographyTypeResolver.JsonPropertyName] = CryptographyTypeResolver.GetTypeId(SelfType),
-                [nameof(AssemblyName)] = AssemblyName,
+                [TypeIdentifierResolver.TypeIdentifierJsonPropertyName] = TypeIdentifierResolver.GetTypeIdentifier(typeof(ShaHasher)),
                 [nameof(HashAlgorithm)] = HashAlgorithm.NumberValue<int>(),
                 [nameof(Encoder)] = Encoder.ToJsonObject()
             };

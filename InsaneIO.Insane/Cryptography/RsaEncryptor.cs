@@ -1,17 +1,14 @@
 using InsaneIO.Insane.Exceptions;
-using InsaneIO.Insane.Cryptography.Attributes;
+using InsaneIO.Insane.Attributes;
 using InsaneIO.Insane.Extensions;
 using InsaneIO.Insane.Serialization;
 using System.Text.Json.Nodes;
 
 namespace InsaneIO.Insane.Cryptography
 {
-    [CryptographyType("Insane-Cryptography-RsaEncryptor")]
+    [TypeIdentifier("Insane-Cryptography-RsaEncryptor")]
     public class RsaEncryptor : IEncryptor
     {
-        public static Type SelfType => typeof(RsaEncryptor);
-        public string AssemblyName { get => IBaseSerializable.GetName(SelfType); }
-
         public required RsaKeyPair KeyPair { get; init; }
         public RsaPadding Padding { get; init; } = RsaPadding.OaepSha256;
         public IEncoder Encoder { get; init; } = Base64Encoder.DefaultInstance;
@@ -22,21 +19,21 @@ namespace InsaneIO.Insane.Cryptography
 
         public static IEncryptor Deserialize(string json)
         {
-            JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(SelfType, json);
-            if (!CryptographyTypeResolver.MatchesSerializedType(SelfType, jsonNode))
+            JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(typeof(RsaEncryptor), json);
+            if (!TypeIdentifierResolver.MatchesSerializedType(typeof(RsaEncryptor), jsonNode))
             {
-                throw new DeserializeException(SelfType, json);
+                throw new DeserializeException(typeof(RsaEncryptor), json);
             }
 
-            IEncoder encoder = IEncoder.DeserializeDynamic(jsonNode[nameof(Encoder)]?.ToJsonString() ?? throw new DeserializeException(SelfType, json));
-            RsaKeyPair keyPair = RsaKeyPair.Deserialize(jsonNode[nameof(KeyPair)]?.ToJsonString() ?? throw new DeserializeException(SelfType, json))
-                ?? throw new DeserializeException(SelfType, json);
+            IEncoder encoder = IEncoder.DeserializeDynamic(jsonNode[nameof(Encoder)]?.ToJsonString() ?? throw new DeserializeException(typeof(RsaEncryptor), json));
+            RsaKeyPair keyPair = RsaKeyPair.Deserialize(jsonNode[nameof(KeyPair)]?.ToJsonString() ?? throw new DeserializeException(typeof(RsaEncryptor), json))
+                ?? throw new DeserializeException(typeof(RsaEncryptor), json);
 
             return new RsaEncryptor
             {
                 KeyPair = keyPair,
                 Encoder = encoder,
-                Padding = (RsaPadding)(jsonNode[nameof(Padding)]?.GetValue<int>() ?? throw new DeserializeException(SelfType, json))
+                Padding = (RsaPadding)(jsonNode[nameof(Padding)]?.GetValue<int>() ?? throw new DeserializeException(typeof(RsaEncryptor), json))
             };
         }
 
@@ -49,8 +46,7 @@ namespace InsaneIO.Insane.Cryptography
         {
             return new JsonObject
             {
-                [CryptographyTypeResolver.JsonPropertyName] = CryptographyTypeResolver.GetTypeId(SelfType),
-                [nameof(AssemblyName)] = AssemblyName,
+                [TypeIdentifierResolver.TypeIdentifierJsonPropertyName] = TypeIdentifierResolver.GetTypeIdentifier(typeof(RsaEncryptor)),
                 [nameof(KeyPair)] = KeyPair.ToJsonObject(),
                 [nameof(Padding)] = Padding.NumberValue<int>(),
                 [nameof(Encoder)] = Encoder.ToJsonObject(),

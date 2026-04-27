@@ -2,6 +2,79 @@
 
 ---
 
+## 10.4.0
+
+This version consolidates the TOTP surface, finishes the move to `TypeIdentifier`-only crypto deserialization, and packages the recent cryptography reorganization as a single release.
+
+### TOTP
+
+Changes:
+
+- Removed `TotpGenerator`.
+- Expanded `TotpManager` to cover the convenience scenarios previously handled by `TotpGenerator`.
+- Added:
+  - `FromSecret(...)`
+  - `FromBase32Secret(...)`
+  - `FromEncodedSecret(...)`
+  - `GenerateTotpUri()`
+  - `ComputeTotpCode(...)`
+  - `VerifyTotpCode(...)`
+  - `ComputeRemainingSeconds()`
+  - `ComputeTotpRemainingSeconds()`
+
+Impact:
+
+- There is now a single main TOTP entry point.
+- Consumers can migrate from `TotpGenerator` without losing convenience APIs.
+
+### Serialization
+
+Changes:
+
+- Removed the remaining dependency on `AssemblyName` for crypto serialization and deserialization.
+- Dynamic and concrete deserialization now rely only on `TypeIdentifier`.
+
+Impact:
+
+- Serialized payloads are cleaner and no longer depend on CLR type naming.
+- Type resolution is more stable across refactors.
+
+### Project Organization
+
+Changes:
+
+- Crypto extension classes were physically grouped under `Cryptography/Extensions`.
+- Crypto enums were physically grouped under `Cryptography/Enum`.
+- `TypeIdentifierResolver` was moved under `Cryptography/Internal`.
+- Removed `ISecureJsonSerializable`.
+
+Impact:
+
+- The project layout now better matches the public namespaces.
+- Internal resolution code is easier to locate and maintain.
+
+### Documentation
+
+Improvements:
+
+- Updated `Docs/Cryptography.md` to reflect the TOTP consolidation and current `TypeIdentifier`-only flow.
+- Updated package version examples in `README.md` to `10.4.0`.
+
+### Testing
+
+Added or expanded coverage for:
+
+- `TotpManager` factory methods
+- `TotpManager` compatibility aliases
+- removal-safe migration coverage for the former `TotpGenerator` scenarios
+
+### Compatibility
+
+- This version removes `TotpGenerator`.
+- TOTP consumers should migrate to `TotpManager`.
+
+---
+
 ## 10.3.0
 
 This version expands the public cryptography API without breaking compatibility. The main focus is improving extensibility for custom implementations, decoupling deserialization from the exact CLR type name, and better organizing the public crypto surface.
@@ -22,10 +95,9 @@ Impact:
 
 New capabilities:
 
-- Added `CryptographyTypeAttribute`.
-- Concrete encoders, hashers, and encryptors now declare a stable type identifier.
-- Dynamic deserialization now tries to resolve types through `CryptographyType` first.
-- If it cannot resolve by identifier, it falls back to `AssemblyName`.
+- Added `TypeIdentifierAttribute`.
+- Concrete encoders, hashers, encryptors, and RSA key pairs now declare a stable type identifier.
+- Dynamic deserialization resolves types through `TypeIdentifier`.
 
 Impact:
 
@@ -39,12 +111,12 @@ Improvements:
 
 - `IEncoder.DeserializeDynamic`, `IHasher.DeserializeDynamic`, and `IEncryptor.DeserializeDynamic` now support stable identifier resolution.
 - Added an internal static cache to avoid scanning loaded assemblies on every deserialization.
-- Concrete `Deserialize(string json)` methods validate through `CryptographyType` first and `AssemblyName` as fallback.
+- Concrete `Deserialize(string json)` methods validate through `TypeIdentifier`.
 
 Impact:
 
 - Better performance in repeated dynamic deserialization scenarios.
-- Better robustness for serialized payloads in future versions or coming from external types.
+- Better robustness for serialized payloads coming from external types.
 
 ### Algorithms and Extensions
 
@@ -79,28 +151,27 @@ Impact:
 Improvements:
 
 - `Docs/Cryptography.md` was updated to reflect the new namespaces for extensions and interfaces.
-- Documented the new deserialization flow using `CryptographyType` with `AssemblyName` fallback.
+- Documented the new deserialization flow using `TypeIdentifier`.
 - Added complete and simple examples for implementing:
   - `IEncoder`
   - `IHasher`
   - `IEncryptor`
-- `README.md` now points to a public URL for the cryptography documentation and updates version examples to `10.3.0`.
+- `README.md` updates version examples to `10.3.0`.
 
 ### Testing
 
 Added or expanded coverage for:
 
-- dynamic deserialization by `CryptographyType`
-- `AssemblyName` fallback
-- concrete serializers with altered `AssemblyName` and correct `CryptographyType`
+- dynamic deserialization by `TypeIdentifier`
+- missing or invalid `TypeIdentifier` rejection
+- concrete serializers validating the expected root type
 - separate tests by class for hash, hmac, scrypt, and argon2
 - reorganized crypto imports and namespaces
 
 ### Compatibility
 
 - Existing `Deserialize(string json)` methods were not removed.
-- `AssemblyName` support remains available as a fallback.
-- The new `CryptographyType` capability is additive and compatible with previous payloads.
+- Dynamic deserialization now depends on `TypeIdentifier`.
 
 ---
 
@@ -180,7 +251,7 @@ Improvements:
 
 Improvements:
 
-- `TotpManager.Deserialize(string json)` now validates `AssemblyName`.
+- `TotpManager.Deserialize(string json)` now validates `TypeIdentifier`.
 - It validates that `CodeLength` and `HashAlgorithm` match defined enum values.
 - It fails early with `DeserializeException` when the payload belongs to another type or contains invalid enums.
 
@@ -205,7 +276,7 @@ Added or expanded coverage for:
 - `IEncoder.DeserializeDynamic`
 - `IHasher.DeserializeDynamic`
 - `IEncryptor.DeserializeDynamic`
-- rejection of incorrect `AssemblyName` values in concrete deserializers
+- rejection of incorrect `TypeIdentifier` values in concrete deserializers
 - `TotpManager.Deserialize` with invalid enums
 - `DecryptAesCbc` with ciphertext shorter than the IV
 - serialization/deserialization round-trips in encoders, hashers, and encryptors

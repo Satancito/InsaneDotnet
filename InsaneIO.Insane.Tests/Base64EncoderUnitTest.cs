@@ -133,42 +133,42 @@ BMqYEI4qTxhH714mB3L5viUCAwEAAQ==";
         public Base64Encoder encoderPemLineBreaksNormalBase64 = new() { EncodingType = Base64Encoding.Base64, LineBreaksLength = Base64Encoder.PemLineBreaksLength };
 
         [TestMethod]
-        public void TestEncodeFor2Pad()
+        public void Encode_ShouldReturnValueWithTwoPaddingCharacters()
         {
             Assert.AreEqual(resultWith2Pad, encoder.Encode(inputFor2Pad.ToByteArrayUtf8()));
             Assert.AreEqual(resultWith2Pad, encoder.Encode(bytesFor2Pad));
         }
 
         [TestMethod]
-        public void TestEncodeFor1Pad()
+        public void Encode_ShouldReturnValueWithOnePaddingCharacter()
         {
             Assert.AreEqual(resultWith1Pad, encoder.Encode(inputFor1Pad.ToByteArrayUtf8()));
             Assert.AreEqual(resultWith1Pad, encoder.Encode(bytesFor1Pad));
         }
 
         [TestMethod]
-        public void TestEncodeFor0Pad()
+        public void Encode_ShouldReturnValueWithoutPaddingWhenNotNeeded()
         {
             Assert.AreEqual(resultWith0Pad, encoder.Encode(inputFor0Pad.ToByteArrayUtf8()));
             Assert.AreEqual(resultWith0Pad, encoder.Encode(bytesFor0Pad));
         }
 
         [TestMethod]
-        public void TestEncodeFor2PadRemoved()
+        public void Encode_ShouldRemoveTwoPaddingCharactersWhenConfigured()
         {
             Assert.AreEqual(resultWith2PadRemoved, encoderNoPadding.Encode(inputFor2Pad.ToByteArrayUtf8()));
             Assert.AreEqual(resultWith2PadRemoved, encoderNoPadding.Encode(bytesFor2Pad));
         }
 
         [TestMethod]
-        public void TestEncodeFor1PadRemoved()
+        public void Encode_ShouldRemoveOnePaddingCharacterWhenConfigured()
         {
             Assert.AreEqual(resultWith1PadRemoved, encoderNoPadding.Encode(inputFor1Pad.ToByteArrayUtf8()));
             Assert.AreEqual(resultWith1PadRemoved, encoderNoPadding.Encode(bytesFor1Pad));
         }
 
         [TestMethod]
-        public void TestEncodeFor0PadRemoved()
+        public void Encode_ShouldLeaveUnpaddedValueUnchangedWhenPaddingRemovalIsEnabled()
         {
             Assert.AreEqual(resultWith0PadRemoved, encoderNoPadding.Encode(inputFor0Pad.ToByteArrayUtf8()));
             Assert.AreEqual(resultWith0PadRemoved, encoderNoPadding.Encode(bytesFor0Pad));
@@ -176,89 +176,89 @@ BMqYEI4qTxhH714mB3L5viUCAwEAAQ==";
 
 
         [TestMethod]
-        public void TestEncode()
+        public void Encode_ShouldReturnStandardBase64()
         {
             Assert.AreEqual(TestBase64String, encoder.Encode(TestBytes));
         }
 
         [TestMethod]
-        public void TestEncodeBytesToFilenameSafe()
+        public void Encode_ShouldReturnFilenameSafeBase64()
         {
             Assert.AreEqual(TestFileNameSafeBase64String, encoderWithPaddingFileNameSafeBase64.Encode(TestBytes));
         }
 
         [TestMethod]
-        public void TestEncodeBytesToUrlSafe()
+        public void Encode_ShouldReturnUrlSafeBase64()
         {
             Assert.AreEqual(TestUrlSafeBase64String, encoderWithPaddingUrlSafeBase64.Encode(TestBytes));
         }
 
         [TestMethod]
-        public void TestEncodeBytesToUrlEncoded()
+        public void Encode_ShouldReturnUrlEncodedBase64()
         {
             Assert.AreEqual(TestUrlEncodedBase64String, encoderWithPaddingUrlEncodedBase64.Encode(TestBytes));
         }
 
         [TestMethod]
-        public void TestEncodeWithNoPadding()
+        public void Encode_ShouldReturnBase64WithoutPaddingWhenConfigured()
         {
             Assert.AreEqual(TestBase64StringNoPadding, encoderNoPaddingNormalBase64.Encode(TestBytes));
         }
 
         [TestMethod]
-        public void TestDecodeBase64()
+        public void Decode_ShouldSupportStandardBase64()
         {
             Assert.IsTrue(Enumerable.SequenceEqual(TestBytes, encoder.Decode(TestBase64String)));
         }
 
         [TestMethod]
-        public void TestDecodeBase64NoPadding()
+        public void Decode_ShouldSupportBase64WithoutPadding()
         {
             Assert.IsTrue(Enumerable.SequenceEqual(TestBytes, encoder.Decode(TestBase64StringNoPadding)));
         }
 
         [TestMethod]
-        public void TestDecodeUrlSafeBase64()
+        public void Decode_ShouldSupportUrlSafeBase64()
         {
             Assert.IsTrue(Enumerable.SequenceEqual(TestBytes, encoder.Decode(TestUrlSafeBase64String)));
         }
 
         [TestMethod]
-        public void TestDecodeFileNameSafeBase64()
+        public void Decode_ShouldSupportFilenameSafeBase64()
         {
             Assert.IsTrue(Enumerable.SequenceEqual(TestBytes, encoder.Decode(TestFileNameSafeBase64String)));
         }
 
         [TestMethod]
-        public void TestDecodeUrlEncodedBase64()
+        public void Decode_ShouldSupportUrlEncodedBase64()
         {
             Assert.IsTrue(Enumerable.SequenceEqual(TestBytes, encoder.Decode(TestUrlEncodedBase64String)));
         }
 
-        public void TestEncodePemBase64()
+        public void Encode_ShouldReturnPemFormattedBase64()
         {
             Assert.AreEqual(TestPemBase64String, encoderPemLineBreaksNormalBase64.Encode(TestBytes));
         }
 
         [TestMethod]
-        public void TestEncodeMimeBase64()
+        public void Encode_ShouldReturnMimeFormattedBase64()
         {
             Assert.AreEqual(NormalizeNewLines(TestMimeBase64String), encoderMimeLineBreaksNormalBase64.Encode(TestBytes));
         }
 
-        public void TestDecodePemBase64()
+        public void Decode_ShouldSupportPemFormattedBase64()
         {
             Assert.IsTrue(Enumerable.SequenceEqual(TestBytes, encoderPemLineBreaksNormalBase64.Decode(TestPemBase64String)));
         }
 
         [TestMethod]
-        public void TestDecodeMimeBase64()
+        public void Decode_ShouldSupportMimeFormattedBase64()
         {
             TestBytes.Should().BeEquivalentTo(encoderMimeLineBreaksNormalBase64.Decode(TestMimeBase64String));
         }
 
         [TestMethod]
-        public void TestSerializeDeserialize()
+        public void SerializeDeserialize_ShouldRoundTripEncoder()
         {
             new Base64Encoder().Serialize().Should().NotBeNullOrWhiteSpace();
 
@@ -288,7 +288,7 @@ BMqYEI4qTxhH714mB3L5viUCAwEAAQ==";
         }
 
         [TestMethod]
-        public void Deserialize_ShouldRejectMismatchedAssemblyName()
+        public void Deserialize_ShouldRejectMismatchedSerializedType()
         {
             string json = HexEncoder.DefaultInstance.Serialize();
 

@@ -1,11 +1,11 @@
-namespace InsaneIO.Insane.Cryptography.Attributes
+namespace InsaneIO.Insane.Attributes
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    public sealed class CryptographyTypeAttribute : Attribute
+    public sealed class TypeIdentifierAttribute : Attribute
     {
         public string Identifier { get; }
 
-        public CryptographyTypeAttribute(string identifier)
+        public TypeIdentifierAttribute(string identifier)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(identifier);
             Identifier = identifier;

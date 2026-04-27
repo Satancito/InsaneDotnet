@@ -13,8 +13,8 @@ namespace InsaneIO.Insane.Cryptography.Abstractions
         public static IEncoder DeserializeDynamic(string json)
         {
             JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(typeof(IEncoder), json);
-            Type encoderType = CryptographyTypeResolver.ResolveSerializedType(typeof(IEncoder), jsonNode, json);
-            return (IEncoder)CryptographyTypeResolver.InvokeDeserialize(typeof(IEncoder), encoderType, json);
+            Type encoderType = TypeIdentifierResolver.ResolveSerializedType(typeof(IEncoder), jsonNode, json);
+            return (IEncoder)TypeIdentifierResolver.InvokeDeserialize(typeof(IEncoder), encoderType, json);
         }
     }
 }

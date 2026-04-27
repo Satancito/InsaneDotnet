@@ -16,8 +16,8 @@ namespace InsaneIO.Insane.Cryptography.Abstractions
         public static IEncryptor DeserializeDynamic(string json)
         {
             JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(typeof(IEncryptor), json);
-            Type encryptorType = CryptographyTypeResolver.ResolveSerializedType(typeof(IEncryptor), jsonNode, json);
-            return (IEncryptor)CryptographyTypeResolver.InvokeDeserialize(typeof(IEncryptor), encryptorType, json);
+            Type encryptorType = TypeIdentifierResolver.ResolveSerializedType(typeof(IEncryptor), jsonNode, json);
+            return (IEncryptor)TypeIdentifierResolver.InvokeDeserialize(typeof(IEncryptor), encryptorType, json);
         }
     }
 }

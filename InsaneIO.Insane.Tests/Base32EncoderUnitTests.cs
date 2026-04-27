@@ -30,79 +30,79 @@ namespace InsaneIO.Insane.Tests
         public static readonly Base32Encoder encoderToUpperNoPadding = new() { RemovePadding = true };
 
         [TestMethod]
-        public void TestEncodeUppercaseWithPadding()
+        public void Encode_ShouldReturnUppercaseWithPadding()
         {
             Assert.AreEqual(encoderToUpperWithPadding.Encode(TestBytes), UpperBase32Result);
         }
 
         [TestMethod]
-        public void TestEncodeLowercaseWithPadding()
+        public void Encode_ShouldReturnLowercaseWithPadding()
         {
             Assert.AreEqual(encoderToLowerWithPadding.Encode(TestBytes), LowerBase32Result);
         }
 
         [TestMethod]
-        public void TestDecodeUpperCaseWithPadding()
+        public void Decode_ShouldSupportUppercaseWithPadding()
         {
             Assert.IsTrue(Enumerable.SequenceEqual(encoderToUpperWithPadding.Decode(UpperBase32Result), TestBytes));
         }
 
         [TestMethod]
-        public void TestDecodeLowerCaseWithPadding()
+        public void Decode_ShouldSupportLowercaseWithPadding()
         {
             Assert.IsTrue(Enumerable.SequenceEqual(encoderToUpperWithPadding.Decode(LowerBase32Result), TestBytes));
         }
 
         [TestMethod]
-        public void TestEncodeUppercaseWithPadding2()
+        public void EncodeSingleByte_ShouldReturnUppercaseWithPadding()
         {
             Assert.AreEqual(encoderToUpperWithPadding.Encode(TestBytes2), UpperBase32Result2);
         }
 
         [TestMethod]
-        public void TestEncodeLowercaseWithPadding2()
+        public void EncodeSingleByte_ShouldReturnLowercaseWithPadding()
         {
             Assert.AreEqual(encoderToLowerWithPadding.Encode(TestBytes2), LowerBase32Result2);
         }
 
         [TestMethod]
-        public void TestDecodeUpperCaseWithPadding2()
+        public void DecodeSingleByte_ShouldSupportUppercaseWithPadding()
         {
             Assert.IsTrue(Enumerable.SequenceEqual(encoderToUpperWithPadding.Decode(UpperBase32Result2), TestBytes2));
         }
 
         [TestMethod]
-        public void TestDecodeLowerCaseWithPadding2()
+        public void DecodeSingleByte_ShouldSupportLowercaseWithPadding()
         {
             Assert.IsTrue(Enumerable.SequenceEqual(encoderToLowerWithPadding.Decode(LowerBase32Result2), TestBytes2));
         }
 
         [TestMethod]
-        public void TestEncodeUppercaseNoPadding2()
+        public void EncodeSingleByte_ShouldReturnUppercaseWithoutPadding()
         {
             Assert.AreEqual(encoderToUpperNoPadding.Encode(TestBytes2), UpperBase32Result2NoPadding);
         }
 
         [TestMethod]
-        public void TestEncodeLowercaseNoPadding2()
+        public void EncodeSingleByte_ShouldReturnLowercaseWithoutPadding()
         {
             Assert.AreEqual(encoderToLowerNoPadding.Encode(TestBytes2), LowerBase32Result2NoPadding);
         }
 
         [TestMethod]
-        public void TestDecodeUpperCaseNoPadding2()
+        public void DecodeSingleByte_ShouldSupportUppercaseWithoutPadding()
         {
             Assert.IsTrue(Enumerable.SequenceEqual(encoderToUpperNoPadding.Decode(UpperBase32Result2NoPadding), TestBytes2));
         }
 
         [TestMethod]
-        public void TestDecodeLowerCaseNoPadding2()
+        public void DecodeSingleByte_ShouldSupportLowercaseWithoutPadding()
         {
             Assert.IsTrue(Enumerable.SequenceEqual(encoderToLowerNoPadding.Decode(LowerBase32Result2NoPadding), TestBytes2));
         }
 
         [TestMethod]
-        public void TestSerializeDeserialize()
+        public void SerializeDeserialize_ShouldRoundTripEncoder()
         {
             IEncoder encoder = Base32Encoder.DefaultInstance;
             string json = encoder.Serialize();
@@ -116,7 +116,7 @@ namespace InsaneIO.Insane.Tests
         }
 
         [TestMethod]
-        public void Deserialize_ShouldRejectMismatchedAssemblyName()
+        public void Deserialize_ShouldRejectMismatchedSerializedType()
         {
             string json = HexEncoder.DefaultInstance.Serialize();
 

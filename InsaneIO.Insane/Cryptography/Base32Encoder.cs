@@ -1,17 +1,14 @@
 using InsaneIO.Insane.Exceptions;
-using InsaneIO.Insane.Cryptography.Attributes;
+using InsaneIO.Insane.Attributes;
 using InsaneIO.Insane.Misc;
 using InsaneIO.Insane.Serialization;
 using System.Text.Json.Nodes;
 
 namespace InsaneIO.Insane.Cryptography
 {
-    [CryptographyType("Insane-Cryptography-Base32Encoder")]
+    [TypeIdentifier("Insane-Cryptography-Base32Encoder")]
     public class Base32Encoder : IEncoder, IDefaultInstance<Base32Encoder>
     {
-        public static Type SelfType => typeof(Base32Encoder);
-        public string AssemblyName { get => IJsonSerializable.GetName(SelfType); }
-
         private static readonly Base32Encoder _DefaultInstance = new();
         public static Base32Encoder DefaultInstance => _DefaultInstance;
 
@@ -41,8 +38,7 @@ namespace InsaneIO.Insane.Cryptography
         {
             return new JsonObject()
             {
-                [CryptographyTypeResolver.JsonPropertyName] = CryptographyTypeResolver.GetTypeId(SelfType),
-                [nameof(AssemblyName)] = AssemblyName,
+                [TypeIdentifierResolver.TypeIdentifierJsonPropertyName] = TypeIdentifierResolver.GetTypeIdentifier(typeof(Base32Encoder)),
                 [nameof(RemovePadding)] = RemovePadding,
                 [nameof(ToLower)] = ToLower,
             };
@@ -55,16 +51,16 @@ namespace InsaneIO.Insane.Cryptography
 
         public static IEncoder Deserialize(string json)
         {
-            JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(SelfType, json);
-            if (!CryptographyTypeResolver.MatchesSerializedType(SelfType, jsonNode))
+            JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(typeof(Base32Encoder), json);
+            if (!TypeIdentifierResolver.MatchesSerializedType(typeof(Base32Encoder), jsonNode))
             {
-                throw new DeserializeException(SelfType, json);
+                throw new DeserializeException(typeof(Base32Encoder), json);
             }
 
             return new Base32Encoder
             {
-                RemovePadding = jsonNode[nameof(RemovePadding)]?.GetValue<bool>() ?? throw new DeserializeException(SelfType, json),
-                ToLower = jsonNode[nameof(ToLower)]?.GetValue<bool>() ?? throw new DeserializeException(SelfType, json)
+                RemovePadding = jsonNode[nameof(RemovePadding)]?.GetValue<bool>() ?? throw new DeserializeException(typeof(Base32Encoder), json),
+                ToLower = jsonNode[nameof(ToLower)]?.GetValue<bool>() ?? throw new DeserializeException(typeof(Base32Encoder), json)
             };
         }
     }

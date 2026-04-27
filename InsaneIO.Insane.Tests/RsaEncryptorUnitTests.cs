@@ -3,6 +3,7 @@ using InsaneIO.Insane.Cryptography;
 using InsaneIO.Insane.Exceptions;
 using InsaneIO.Insane.Extensions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Text.Json.Nodes;
 
 namespace InsaneIO.Insane.Tests
 {
@@ -78,7 +79,7 @@ namespace InsaneIO.Insane.Tests
         }
 
         [TestMethod]
-        public void RsaKeyPairDeserialize_ShouldRejectMismatchedAssemblyName()
+        public void RsaKeyPairDeserialize_ShouldRejectMismatchedSerializedType()
         {
             string json = new RsaEncryptor
             {
@@ -91,7 +92,17 @@ namespace InsaneIO.Insane.Tests
         }
 
         [TestMethod]
-        public void RsaEncryptorDeserialize_ShouldRejectMismatchedAssemblyName()
+        public void RsaKeyPairDeserialize_ShouldRejectMissingTypeIdentifier()
+        {
+            RsaKeyPair keyPair = 2048u.CreateRsaKeyPair(RsaKeyPairEncoding.Pem);
+            JsonNode jsonNode = JsonNode.Parse(keyPair.Serialize())!;
+            jsonNode["TypeIdentifier"] = null;
+
+            FluentActions.Invoking(() => RsaKeyPair.Deserialize(jsonNode.ToJsonString())).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void RsaEncryptorDeserialize_ShouldRejectMismatchedSerializedType()
         {
             string json = new AesCbcEncryptor
             {

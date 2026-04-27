@@ -18,31 +18,31 @@ namespace InsaneIO.Insane.Tests
         private static readonly HexEncoder encoderToLower = new() { ToUpper = false };
 
         [TestMethod]
-        public void TestDecodeUppercase()
+        public void Decode_ShouldSupportUppercaseHex()
         {
             Assert.IsTrue(Enumerable.SequenceEqual(encoderToUpper.Decode(hexStringUppercase), testTytes));
         }
 
         [TestMethod]
-        public void TestDecodeLowercase()
+        public void Decode_ShouldSupportLowercaseHex()
         {
             Assert.IsTrue(Enumerable.SequenceEqual(encoderToLower.Decode(hexStringLowercase), testTytes));
         }
 
         [TestMethod]
-        public void TestEncodeUpper()
+        public void Encode_ShouldReturnUppercaseHex()
         {
             Assert.AreEqual(hexStringUppercase, encoderToUpper.Encode(testTytes));
         }
 
         [TestMethod]
-        public void TestEncodeLower()
+        public void Encode_ShouldReturnLowercaseHex()
         {
             Assert.AreEqual(hexStringLowercase, encoderToLower.Encode(testTytes));
         }
 
         [TestMethod]
-        public void TestSerializeDeserialize()
+        public void SerializeDeserialize_ShouldRoundTripEncoder()
         {
             IEncoder encoder = HexEncoder.DefaultInstance;
             string json = encoder.Serialize();
@@ -56,7 +56,7 @@ namespace InsaneIO.Insane.Tests
         }
 
         [TestMethod]
-        public void Deserialize_ShouldRejectMismatchedAssemblyName()
+        public void Deserialize_ShouldRejectMismatchedSerializedType()
         {
             string json = Base32Encoder.DefaultInstance.Serialize();
 
@@ -64,18 +64,13 @@ namespace InsaneIO.Insane.Tests
         }
 
         [TestMethod]
-        public void Deserialize_ShouldUseCryptographyTypeWhenAssemblyNameDoesNotMatch()
+        public void Deserialize_ShouldRejectMissingTypeIdentifier()
         {
             JsonNode jsonNode = JsonNode.Parse(HexEncoder.DefaultInstance.Serialize())!;
-            jsonNode[nameof(HexEncoder.AssemblyName)] = "Some.Other.HexEncoder, Renamed.Assembly";
+            jsonNode["TypeIdentifier"] = null;
 
-            IEncoder deserialized = HexEncoder.Deserialize(jsonNode.ToJsonString());
-            IEncoder deserializedDynamic = IEncoder.DeserializeDynamic(jsonNode.ToJsonString());
-
-            deserialized.Should().BeOfType<HexEncoder>();
-            deserializedDynamic.Should().BeOfType<HexEncoder>();
-            TestSerializationAssertions.AssertJsonEquals(HexEncoder.DefaultInstance.ToJsonObject(), deserialized.ToJsonObject());
-            TestSerializationAssertions.AssertJsonEquals(HexEncoder.DefaultInstance.ToJsonObject(), deserializedDynamic.ToJsonObject());
+            FluentActions.Invoking(() => HexEncoder.Deserialize(jsonNode.ToJsonString())).Should().Throw<DeserializeException>();
+            FluentActions.Invoking(() => IEncoder.DeserializeDynamic(jsonNode.ToJsonString())).Should().Throw<DeserializeException>();
         }
     }
 }

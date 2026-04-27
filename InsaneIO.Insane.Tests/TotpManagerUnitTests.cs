@@ -30,7 +30,7 @@ namespace InsaneIO.Insane.Tests
         };
 
         [TestMethod]
-        public void TestVerifyCodes()
+        public void VerifyCode_ShouldValidateKnownCodes()
         {
             foreach (var element in Codes)
             {
@@ -39,7 +39,7 @@ namespace InsaneIO.Insane.Tests
         }
 
         [TestMethod]
-        public void TestComputeCodes()
+        public void ComputeCode_ShouldReturnKnownCodes()
         {
             foreach (var element in Codes)
             {
@@ -49,7 +49,7 @@ namespace InsaneIO.Insane.Tests
         }
 
         [TestMethod]
-        public void TestSerializeDeserialize()
+        public void SerializeDeserialize_ShouldRoundTripConfiguration()
         {
             string json = manager.Serialize();
             JsonObject jsonObject = manager.ToJsonObject();
@@ -58,7 +58,33 @@ namespace InsaneIO.Insane.Tests
         }
 
         [TestMethod]
-        public void Deserialize_ShouldRejectMismatchedAssemblyName()
+        public void FactoryMethods_ShouldCreateEquivalentManagers()
+        {
+            string base32Secret = Base32Encoder.DefaultInstance.Encode(manager.Secret);
+            string hexSecret = HexEncoder.DefaultInstance.Encode(manager.Secret);
+
+            TotpManager fromBytes = TotpManager.FromSecret(manager.Secret, manager.Label, manager.Issuer);
+            TotpManager fromBase32 = TotpManager.FromBase32Secret(base32Secret, manager.Label, manager.Issuer);
+            TotpManager fromEncoded = TotpManager.FromEncodedSecret(hexSecret, HexEncoder.DefaultInstance, manager.Label, manager.Issuer);
+
+            fromBytes.ToJsonObject().ToJsonString().Should().Be(manager.ToJsonObject().ToJsonString());
+            fromBase32.ToJsonObject().ToJsonString().Should().Be(manager.ToJsonObject().ToJsonString());
+            fromEncoded.ToJsonObject().ToJsonString().Should().Be(manager.ToJsonObject().ToJsonString());
+        }
+
+        [TestMethod]
+        public void CompatibilityMethods_ShouldMatchPrimaryMethods()
+        {
+            DateTimeOffset now = DateTimeOffset.FromUnixTimeMilliseconds(Codes[0].EpochMilliseconds);
+
+            manager.GenerateTotpUri().Should().Be(manager.ToOtpUri());
+            manager.ComputeTotpCode(now).Should().Be(manager.ComputeCode(now));
+            manager.VerifyTotpCode(Codes[0].Code, now).Should().Be(manager.VerifyCode(Codes[0].Code, now));
+            manager.ComputeTotpRemainingSeconds(now).Should().Be(manager.ComputeRemainingSeconds(now));
+        }
+
+        [TestMethod]
+        public void Deserialize_ShouldRejectMismatchedSerializedType()
         {
             string json = HexEncoder.DefaultInstance.Serialize();
 

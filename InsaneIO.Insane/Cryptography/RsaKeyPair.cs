@@ -1,24 +1,23 @@
+using InsaneIO.Insane.Cryptography.Abstractions;
+using InsaneIO.Insane.Attributes;
 using InsaneIO.Insane.Exceptions;
 using InsaneIO.Insane.Serialization;
 using System.Text.Json.Nodes;
 
 namespace InsaneIO.Insane.Cryptography
 {
-    public class RsaKeyPair : IJsonSerializable
+    [TypeIdentifier("Insane-Cryptography-RsaKeyPair")]
+    public class RsaKeyPair : IRsaKeyPairJsonSerializable
     {
-        public static Type SelfType => typeof(RsaKeyPair);
-        public string AssemblyName { get => IBaseSerializable.GetName(SelfType); }
         public string? PublicKey { get; init; }
         public string? PrivateKey { get; init; }
 
         public static RsaKeyPair Deserialize(string json)
         {
-            JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(SelfType, json);
-            string assemblyName = jsonNode[nameof(AssemblyName)]?.GetValue<string>() ?? throw new DeserializeException(SelfType, json);
-
-            if (assemblyName != IBaseSerializable.GetName(SelfType))
+            JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(typeof(RsaKeyPair), json);
+            if (!TypeIdentifierResolver.MatchesSerializedType(typeof(RsaKeyPair), jsonNode))
             {
-                throw new DeserializeException(SelfType, json);
+                throw new DeserializeException(typeof(RsaKeyPair), json);
             }
 
             string? publicKey = jsonNode[nameof(PublicKey)]?.GetValue<string?>();
@@ -26,7 +25,7 @@ namespace InsaneIO.Insane.Cryptography
 
             if (string.IsNullOrWhiteSpace(publicKey) && string.IsNullOrWhiteSpace(privateKey))
             {
-                throw new DeserializeException(SelfType, json);
+                throw new DeserializeException(typeof(RsaKeyPair), json);
             }
 
             return new RsaKeyPair
@@ -45,7 +44,7 @@ namespace InsaneIO.Insane.Cryptography
         {
             return new JsonObject()
             {
-                [nameof(AssemblyName)] = AssemblyName,
+                [TypeIdentifierResolver.TypeIdentifierJsonPropertyName] = TypeIdentifierResolver.GetTypeIdentifier(typeof(RsaKeyPair)),
                 [nameof(PublicKey)] = PublicKey,
                 [nameof(PrivateKey)] = PrivateKey
             };

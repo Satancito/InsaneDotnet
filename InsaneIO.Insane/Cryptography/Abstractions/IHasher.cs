@@ -18,8 +18,8 @@ namespace InsaneIO.Insane.Cryptography.Abstractions
         public static IHasher DeserializeDynamic(string json)
         {
             JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(typeof(IHasher), json);
-            Type hasherType = CryptographyTypeResolver.ResolveSerializedType(typeof(IHasher), jsonNode, json);
-            return (IHasher)CryptographyTypeResolver.InvokeDeserialize(typeof(IHasher), hasherType, json);
+            Type hasherType = TypeIdentifierResolver.ResolveSerializedType(typeof(IHasher), jsonNode, json);
+            return (IHasher)TypeIdentifierResolver.InvokeDeserialize(typeof(IHasher), hasherType, json);
         }
     }
 }

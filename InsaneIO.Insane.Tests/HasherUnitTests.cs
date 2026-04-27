@@ -119,7 +119,7 @@ namespace InsaneIO.Insane.Tests
         }
 
         [TestMethod]
-        public void ConcreteHasherDeserialize_ShouldRejectMismatchedAssemblyName()
+        public void ConcreteHasherDeserialize_ShouldRejectMismatchedSerializedType()
         {
             string shaJson = new ShaHasher
             {
@@ -162,7 +162,7 @@ namespace InsaneIO.Insane.Tests
         }
 
         [TestMethod]
-        public void Deserialize_ShouldUseCryptographyTypeForHashersWhenAssemblyNameDoesNotMatch()
+        public void Deserialize_ShouldRejectMissingTypeIdentifierForHashers()
         {
             var hasher = new HmacHasher
             {
@@ -172,15 +172,10 @@ namespace InsaneIO.Insane.Tests
             };
 
             JsonNode jsonNode = JsonNode.Parse(hasher.Serialize())!;
-            jsonNode[nameof(HmacHasher.AssemblyName)] = "Some.Other.HmacHasher, Renamed.Assembly";
+            jsonNode["TypeIdentifier"] = null;
 
-            IHasher deserialized = HmacHasher.Deserialize(jsonNode.ToJsonString());
-            IHasher deserializedDynamic = IHasher.DeserializeDynamic(jsonNode.ToJsonString());
-
-            deserialized.Should().BeOfType<HmacHasher>();
-            deserializedDynamic.Should().BeOfType<HmacHasher>();
-            TestSerializationAssertions.AssertJsonEquals(hasher.ToJsonObject(), deserialized.ToJsonObject());
-            TestSerializationAssertions.AssertJsonEquals(hasher.ToJsonObject(), deserializedDynamic.ToJsonObject());
+            FluentActions.Invoking(() => HmacHasher.Deserialize(jsonNode.ToJsonString())).Should().Throw<DeserializeException>();
+            FluentActions.Invoking(() => IHasher.DeserializeDynamic(jsonNode.ToJsonString())).Should().Throw<DeserializeException>();
         }
     }
 }
