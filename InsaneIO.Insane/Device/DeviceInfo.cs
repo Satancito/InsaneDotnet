@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using InsaneIO.Insane.Cryptography.Enums;
 
 namespace InsaneIO.Insane.Device
 {

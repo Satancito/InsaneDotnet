@@ -1,5 +1,5 @@
 using FluentAssertions;
-using InsaneIO.Insane.Cryptography;
+using InsaneIO.Insane.Cryptography.Enums;
 using InsaneIO.Insane.Exceptions;
 using InsaneIO.Insane.Extensions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -119,6 +119,51 @@ namespace InsaneIO.Insane.Tests
 
             FluentActions.Invoking(() => AesCbcEncryptor.Deserialize(jsonNode.ToJsonString())).Should().Throw<DeserializeException>();
             FluentActions.Invoking(() => IEncryptor.DeserializeDynamic(jsonNode.ToJsonString())).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void AesCbcEncryptorDeserialize_ShouldRejectMissingKey()
+        {
+            var encryptor = new AesCbcEncryptor { KeyString = Key, Encoder = HexEncoder.DefaultInstance, Padding = AesCbcPadding.Pkcs7 };
+            string json = TestJsonMutations.RemoveProperty(encryptor.Serialize(), "Key");
+
+            FluentActions.Invoking(() => AesCbcEncryptor.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void AesCbcEncryptorDeserialize_ShouldRejectMissingPadding()
+        {
+            var encryptor = new AesCbcEncryptor { KeyString = Key, Encoder = HexEncoder.DefaultInstance, Padding = AesCbcPadding.Pkcs7 };
+            string json = TestJsonMutations.RemoveProperty(encryptor.Serialize(), nameof(AesCbcEncryptor.Padding));
+
+            FluentActions.Invoking(() => AesCbcEncryptor.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void AesCbcEncryptorDeserialize_ShouldRejectMissingEncoder()
+        {
+            var encryptor = new AesCbcEncryptor { KeyString = Key, Encoder = HexEncoder.DefaultInstance, Padding = AesCbcPadding.Pkcs7 };
+            string json = TestJsonMutations.RemoveProperty(encryptor.Serialize(), nameof(AesCbcEncryptor.Encoder));
+
+            FluentActions.Invoking(() => AesCbcEncryptor.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void AesCbcEncryptorDeserialize_ShouldRejectInvalidPadding()
+        {
+            var encryptor = new AesCbcEncryptor { KeyString = Key, Encoder = HexEncoder.DefaultInstance, Padding = AesCbcPadding.Pkcs7 };
+            string json = TestJsonMutations.ReplaceProperty(encryptor.Serialize(), nameof(AesCbcEncryptor.Padding), JsonValue.Create(999));
+
+            FluentActions.Invoking(() => AesCbcEncryptor.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void AesCbcEncryptorDeserialize_ShouldRejectInvalidEncoder()
+        {
+            var encryptor = new AesCbcEncryptor { KeyString = Key, Encoder = HexEncoder.DefaultInstance, Padding = AesCbcPadding.Pkcs7 };
+            string json = TestJsonMutations.ReplaceProperty(encryptor.Serialize(), nameof(AesCbcEncryptor.Encoder), JsonValue.Create("invalid"));
+
+            FluentActions.Invoking(() => AesCbcEncryptor.Deserialize(json)).Should().Throw<DeserializeException>();
         }
     }
 }

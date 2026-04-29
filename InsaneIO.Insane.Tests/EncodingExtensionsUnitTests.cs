@@ -1,9 +1,10 @@
 using FluentAssertions;
-using InsaneIO.Insane.Cryptography;
 using InsaneIO.Insane.Extensions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Text;
+using System.Linq;
+using InsaneIO.Insane.Cryptography.Enums;
 
 namespace InsaneIO.Insane.Tests
 {
@@ -61,6 +62,14 @@ namespace InsaneIO.Insane.Tests
         }
 
         [TestMethod]
+        public void HexEncodingExtensions_ShouldRejectInvalidCharacters()
+        {
+            FluentActions.Invoking(() => "GG".DecodeFromHex())
+                .Should()
+                .Throw<ArgumentException>();
+        }
+
+        [TestMethod]
         public void Base32EncodingExtensions_ShouldRespectPaddingAndCase()
         {
             byte[] bytes = "A".ToByteArrayUtf8();
@@ -88,6 +97,14 @@ namespace InsaneIO.Insane.Tests
         }
 
         [TestMethod]
+        public void Base32EncodingExtensions_ShouldRejectInvalidCharacters()
+        {
+            FluentActions.Invoking(() => "IE$=====".DecodeFromBase32())
+                .Should()
+                .Throw<ArgumentException>();
+        }
+
+        [TestMethod]
         public void Base64EncodingExtensions_ShouldSupportBase64Variants()
         {
             byte[] bytes = { 0xfb, 0xff, 0xee };
@@ -103,6 +120,20 @@ namespace InsaneIO.Insane.Tests
             base64.EncodeBase64ToUrlSafeBase64().Should().Be("-__u");
             base64.EncodeBase64ToFilenameSafeBase64().Should().Be("-__u");
             base64.EncodeBase64ToUrlEncodedBase64().Should().Be("%2B%2F%2Fu");
+        }
+
+        [TestMethod]
+        public void Base64EncodingExtensions_ShouldSupportMimeAndPemLineBreaks()
+        {
+            byte[] bytes = Enumerable.Range(0, 90).Select(value => (byte)value).ToArray();
+
+            string mime = bytes.EncodeToBase64(Base64EncodingExtensions.MimeLineBreaksLength);
+            string pem = bytes.EncodeToBase64(Base64EncodingExtensions.PemLineBreaksLength);
+
+            mime.Should().Contain(Environment.NewLine);
+            pem.Should().Contain(Environment.NewLine);
+            mime.DecodeFromBase64().Should().Equal(bytes);
+            pem.DecodeFromBase64().Should().Equal(bytes);
         }
 
         [TestMethod]

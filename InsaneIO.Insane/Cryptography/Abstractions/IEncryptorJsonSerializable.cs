@@ -1,9 +1,8 @@
 using InsaneIO.Insane.Serialization;
 
-namespace InsaneIO.Insane.Cryptography.Abstractions
+namespace InsaneIO.Insane.Cryptography.Abstractions;
+
+public interface IEncryptorJsonSerializable : IJsonSerializable
 {
-    public interface IEncryptorJsonSerializable : IJsonSerializable
-    {
-        public static abstract IEncryptor Deserialize(string json);
-    }
+    public static abstract IEncryptor Deserialize(string json);
 }

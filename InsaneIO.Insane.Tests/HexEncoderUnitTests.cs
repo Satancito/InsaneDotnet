@@ -66,11 +66,18 @@ namespace InsaneIO.Insane.Tests
         [TestMethod]
         public void Deserialize_ShouldRejectMissingTypeIdentifier()
         {
-            JsonNode jsonNode = JsonNode.Parse(HexEncoder.DefaultInstance.Serialize())!;
-            jsonNode["TypeIdentifier"] = null;
+            string json = TestJsonMutations.RemoveTypeIdentifier(HexEncoder.DefaultInstance.Serialize());
 
-            FluentActions.Invoking(() => HexEncoder.Deserialize(jsonNode.ToJsonString())).Should().Throw<DeserializeException>();
-            FluentActions.Invoking(() => IEncoder.DeserializeDynamic(jsonNode.ToJsonString())).Should().Throw<DeserializeException>();
+            FluentActions.Invoking(() => HexEncoder.Deserialize(json)).Should().Throw<DeserializeException>();
+            FluentActions.Invoking(() => IEncoder.DeserializeDynamic(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void Deserialize_ShouldRejectMissingToUpper()
+        {
+            string json = TestJsonMutations.RemoveProperty(HexEncoder.DefaultInstance.Serialize(), nameof(HexEncoder.ToUpper));
+
+            FluentActions.Invoking(() => HexEncoder.Deserialize(json)).Should().Throw<DeserializeException>();
         }
     }
 }

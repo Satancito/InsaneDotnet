@@ -4,12 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace InsaneIO.Insane.Cryptography
+namespace InsaneIO.Insane.Cryptography.Enums;
+
+public enum EncoderType
 {
-    public enum EncoderType
-    {
-        Hex,
-        Base32,
-        Base64
-    }
+    Hex,
+    Base32,
+    Base64
 }

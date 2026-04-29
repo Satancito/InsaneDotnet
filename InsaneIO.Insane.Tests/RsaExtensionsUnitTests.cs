@@ -5,8 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using InsaneIO.Insane.Extensions;
-using InsaneIO.Insane.Cryptography;
 using System.Runtime.Versioning;
+using FluentAssertions;
+using InsaneIO.Insane.Cryptography.Enums;
 
 namespace InsaneIO.Insane.Tests
 {
@@ -47,6 +48,23 @@ namespace InsaneIO.Insane.Tests
         public void CreateRsaKeyPair_ShouldCreateXmlEncodedKeys()
         {
             CreateKeyPair(KeySize, RsaKeyPairEncoding.Xml);
+        }
+
+        [TestMethod]
+        [DataRow(RsaKeyPairEncoding.Ber, RsaKeyEncoding.BerPublic, RsaKeyEncoding.BerPrivate)]
+        [DataRow(RsaKeyPairEncoding.Pem, RsaKeyEncoding.PemPublic, RsaKeyEncoding.PemPrivate)]
+        [DataRow(RsaKeyPairEncoding.Xml, RsaKeyEncoding.XmlPublic, RsaKeyEncoding.XmlPrivate)]
+        public void CreateRsaKeyPair_ShouldRoundTripAndDetectExpectedEncoding(
+            RsaKeyPairEncoding pairEncoding,
+            RsaKeyEncoding expectedPublicEncoding,
+            RsaKeyEncoding expectedPrivateEncoding)
+        {
+            RsaKeyPair keyPair = 2048u.CreateRsaKeyPair(pairEncoding);
+            string encrypted = Data.EncryptRsaEncoded(keyPair.PublicKey!, Base64Encoder.DefaultInstance);
+
+            keyPair.PublicKey!.GetRsaKeyEncoding().Should().Be(expectedPublicEncoding);
+            keyPair.PrivateKey!.GetRsaKeyEncoding().Should().Be(expectedPrivateEncoding);
+            encrypted.DecryptRsaFromEncoded(keyPair.PrivateKey!, Base64Encoder.DefaultInstance).ToStringUtf8().Should().Be(Data);
         }
 
 

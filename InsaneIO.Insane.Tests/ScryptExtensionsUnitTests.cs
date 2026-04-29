@@ -26,6 +26,7 @@ namespace InsaneIO.Insane.Tests
             Data.ComputeScrypt(SaltBytes, iterations, blockSize, parallelism, derivedKeyLength).Should().Equal(expected);
             DataBytes.ComputeScrypt(Salt, iterations, blockSize, parallelism, derivedKeyLength).Should().Equal(expected);
             Data.VerifyScrypt(Salt, expected, iterations, blockSize, parallelism, derivedKeyLength).Should().BeTrue();
+            "other payload".VerifyScrypt(Salt, expected, iterations, blockSize, parallelism, derivedKeyLength).Should().BeFalse();
             Data.VerifyScryptFromEncoded(Salt, encoded, HexEncoder.DefaultInstance, iterations, blockSize, parallelism, derivedKeyLength).Should().BeTrue();
             DataBytes.VerifyScryptFromEncoded(SaltBytes, encoded, HexEncoder.DefaultInstance, iterations, blockSize, parallelism, derivedKeyLength).Should().BeTrue();
             Data.VerifyScryptFromEncoded(Salt, encoded + "00", HexEncoder.DefaultInstance, iterations, blockSize, parallelism, derivedKeyLength).Should().BeFalse();

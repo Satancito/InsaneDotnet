@@ -1,10 +1,10 @@
 using FluentAssertions;
-using InsaneIO.Insane.Cryptography;
+using InsaneIO.Insane.Cryptography.Enums;
 using InsaneIO.Insane.Exceptions;
 using InsaneIO.Insane.Extensions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Text.Json.Nodes;
-using InsaneHashAlgorithm = InsaneIO.Insane.Cryptography.HashAlgorithm;
+using InsaneHashAlgorithm = InsaneIO.Insane.Cryptography.Enums.HashAlgorithm;
 
 namespace InsaneIO.Insane.Tests
 {
@@ -176,6 +176,78 @@ namespace InsaneIO.Insane.Tests
 
             FluentActions.Invoking(() => HmacHasher.Deserialize(jsonNode.ToJsonString())).Should().Throw<DeserializeException>();
             FluentActions.Invoking(() => IHasher.DeserializeDynamic(jsonNode.ToJsonString())).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void ShaHasherDeserialize_ShouldRejectMissingHashAlgorithm()
+        {
+            var hasher = new ShaHasher { HashAlgorithm = InsaneHashAlgorithm.Sha256, Encoder = HexEncoder.DefaultInstance };
+            string json = TestJsonMutations.RemoveProperty(hasher.Serialize(), nameof(ShaHasher.HashAlgorithm));
+
+            FluentActions.Invoking(() => ShaHasher.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void ShaHasherDeserialize_ShouldRejectInvalidHashAlgorithm()
+        {
+            var hasher = new ShaHasher { HashAlgorithm = InsaneHashAlgorithm.Sha256, Encoder = HexEncoder.DefaultInstance };
+            string json = TestJsonMutations.ReplaceProperty(hasher.Serialize(), nameof(ShaHasher.HashAlgorithm), JsonValue.Create(999));
+
+            FluentActions.Invoking(() => ShaHasher.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void HmacHasherDeserialize_ShouldRejectMissingKey()
+        {
+            var hasher = new HmacHasher { KeyString = Key, HashAlgorithm = InsaneHashAlgorithm.Sha256, Encoder = Base64Encoder.DefaultInstance };
+            string json = TestJsonMutations.RemoveProperty(hasher.Serialize(), "Key");
+
+            FluentActions.Invoking(() => HmacHasher.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void HmacHasherDeserialize_ShouldRejectInvalidEncoder()
+        {
+            var hasher = new HmacHasher { KeyString = Key, HashAlgorithm = InsaneHashAlgorithm.Sha256, Encoder = Base64Encoder.DefaultInstance };
+            string json = TestJsonMutations.ReplaceProperty(hasher.Serialize(), nameof(HmacHasher.Encoder), JsonValue.Create("invalid"));
+
+            FluentActions.Invoking(() => HmacHasher.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void ScryptHasherDeserialize_ShouldRejectMissingSalt()
+        {
+            var hasher = new ScryptHasher { SaltString = Salt, Iterations = 16, BlockSize = 1, Parallelism = 1, DerivedKeyLength = 16, Encoder = HexEncoder.DefaultInstance };
+            string json = TestJsonMutations.RemoveProperty(hasher.Serialize(), "Salt");
+
+            FluentActions.Invoking(() => ScryptHasher.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void ScryptHasherDeserialize_ShouldRejectInvalidIterations()
+        {
+            var hasher = new ScryptHasher { SaltString = Salt, Iterations = 16, BlockSize = 1, Parallelism = 1, DerivedKeyLength = 16, Encoder = HexEncoder.DefaultInstance };
+            string json = TestJsonMutations.ReplaceProperty(hasher.Serialize(), nameof(ScryptHasher.Iterations), JsonValue.Create("invalid"));
+
+            FluentActions.Invoking(() => ScryptHasher.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void Argon2HasherDeserialize_ShouldRejectMissingVariant()
+        {
+            var hasher = new Argon2Hasher { SaltString = Salt, Iterations = 1, MemorySizeKiB = 1024, DegreeOfParallelism = 1, DerivedKeyLength = 16, Argon2Variant = Argon2Variant.Argon2id, Encoder = Base64Encoder.DefaultInstance };
+            string json = TestJsonMutations.RemoveProperty(hasher.Serialize(), nameof(Argon2Hasher.Argon2Variant));
+
+            FluentActions.Invoking(() => Argon2Hasher.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void Argon2HasherDeserialize_ShouldRejectInvalidVariant()
+        {
+            var hasher = new Argon2Hasher { SaltString = Salt, Iterations = 1, MemorySizeKiB = 1024, DegreeOfParallelism = 1, DerivedKeyLength = 16, Argon2Variant = Argon2Variant.Argon2id, Encoder = Base64Encoder.DefaultInstance };
+            string json = TestJsonMutations.ReplaceProperty(hasher.Serialize(), nameof(Argon2Hasher.Argon2Variant), JsonValue.Create(999));
+
+            FluentActions.Invoking(() => Argon2Hasher.Deserialize(json)).Should().Throw<DeserializeException>();
         }
     }
 }

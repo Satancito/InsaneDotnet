@@ -4,15 +4,17 @@ using InsaneIO.Insane.Exceptions;
 using InsaneIO.Insane.Serialization;
 using System.Text.Json.Nodes;
 
-namespace InsaneIO.Insane.Cryptography
-{
-    [TypeIdentifier("Insane-Cryptography-RsaKeyPair")]
-    public class RsaKeyPair : IRsaKeyPairJsonSerializable
-    {
-        public string? PublicKey { get; init; }
-        public string? PrivateKey { get; init; }
+namespace InsaneIO.Insane.Cryptography;
 
-        public static RsaKeyPair Deserialize(string json)
+[TypeIdentifier("Insane-Cryptography-RsaKeyPair")]
+public class RsaKeyPair : IRsaKeyPairSerializable
+{
+    public string? PublicKey { get; init; }
+    public string? PrivateKey { get; init; }
+
+    public static RsaKeyPair Deserialize(string json)
+    {
+        try
         {
             JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(typeof(RsaKeyPair), json);
             if (!TypeIdentifierResolver.MatchesSerializedType(typeof(RsaKeyPair), jsonNode))
@@ -23,7 +25,7 @@ namespace InsaneIO.Insane.Cryptography
             string? publicKey = jsonNode[nameof(PublicKey)]?.GetValue<string?>();
             string? privateKey = jsonNode[nameof(PrivateKey)]?.GetValue<string?>();
 
-            if (string.IsNullOrWhiteSpace(publicKey) && string.IsNullOrWhiteSpace(privateKey))
+            if (string.IsNullOrWhiteSpace(publicKey) || string.IsNullOrWhiteSpace(privateKey))
             {
                 throw new DeserializeException(typeof(RsaKeyPair), json);
             }
@@ -34,20 +36,28 @@ namespace InsaneIO.Insane.Cryptography
                 PrivateKey = privateKey
             };
         }
-
-        public string Serialize(bool indented = false)
+        catch (DeserializeException)
         {
-            return ToJsonObject().ToJsonString(IJsonSerializable.GetIndentOptions(indented));
+            throw;
         }
-
-        public JsonObject ToJsonObject()
+        catch
         {
-            return new JsonObject()
-            {
-                [TypeIdentifierResolver.TypeIdentifierJsonPropertyName] = TypeIdentifierResolver.GetTypeIdentifier(typeof(RsaKeyPair)),
-                [nameof(PublicKey)] = PublicKey,
-                [nameof(PrivateKey)] = PrivateKey
-            };
+            throw new DeserializeException(typeof(RsaKeyPair), json);
         }
+    }
+
+    public string Serialize(bool indented = false)
+    {
+        return ToJsonObject().ToJsonString(IJsonSerializable.GetIndentOptions(indented));
+    }
+
+    public JsonObject ToJsonObject()
+    {
+        return new JsonObject()
+        {
+            [TypeIdentifierResolver.TypeIdentifierJsonPropertyName] = TypeIdentifierResolver.GetTypeIdentifier(typeof(RsaKeyPair)),
+            [nameof(PublicKey)] = PublicKey,
+            [nameof(PrivateKey)] = PrivateKey
+        };
     }
 }

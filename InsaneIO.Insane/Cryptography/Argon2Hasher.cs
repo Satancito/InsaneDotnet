@@ -2,30 +2,33 @@ using InsaneIO.Insane.Exceptions;
 using InsaneIO.Insane.Attributes;
 using InsaneIO.Insane.Serialization;
 using System.Text.Json.Nodes;
+using InsaneIO.Insane.Cryptography.Enums;
 
-namespace InsaneIO.Insane.Cryptography
+namespace InsaneIO.Insane.Cryptography;
+
+[TypeIdentifier("Insane-Cryptography-Argon2Hasher")]
+public class Argon2Hasher : IHasher
 {
-    [TypeIdentifier("Insane-Cryptography-Argon2Hasher")]
-    public class Argon2Hasher : IHasher
+    public string SaltString { get => Encoder.Encode(Salt); init => Salt = value.ToByteArrayUtf8(); }
+
+    public byte[] SaltBytes { get => Salt; init => Salt = value; }
+
+    private byte[] Salt = RandomExtensions.NextBytes(Constants.Argon2SaltSize);
+
+    public IEncoder Encoder { get; init; } = Base64Encoder.DefaultInstance;
+    public uint Iterations { get; init; } = Constants.Argon2Iterations;
+    public uint MemorySizeKiB { get; init; } = Constants.Argon2MemorySizeInKiB;
+    public uint DegreeOfParallelism { get; init; } = Constants.Argon2DegreeOfParallelism;
+    public uint DerivedKeyLength { get; init; } = Constants.Argon2DerivedKeyLength;
+    public Argon2Variant Argon2Variant { get; init; } = Argon2Variant.Argon2id;
+
+    public Argon2Hasher()
     {
-        public string SaltString { get => Encoder.Encode(Salt); init => Salt = value.ToByteArrayUtf8(); }
+    }
 
-        public byte[] SaltBytes { get => Salt; init => Salt = value; }
-
-        private byte[] Salt = RandomExtensions.NextBytes(Constants.Argon2SaltSize);
-
-        public IEncoder Encoder { get; init; } = Base64Encoder.DefaultInstance;
-        public uint Iterations { get; init; } = Constants.Argon2Iterations;
-        public uint MemorySizeKiB { get; init; } = Constants.Argon2MemorySizeInKiB;
-        public uint DegreeOfParallelism { get; init; } = Constants.Argon2DegreeOfParallelism;
-        public uint DerivedKeyLength { get; init; } = Constants.Argon2DerivedKeyLength;
-        public Argon2Variant Argon2Variant { get; init; } = Argon2Variant.Argon2id;
-
-        public Argon2Hasher()
-        {
-        }
-
-        public static IHasher Deserialize(string json)
+    public static IHasher Deserialize(string json)
+    {
+        try
         {
             JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(typeof(Argon2Hasher), json);
             if (!TypeIdentifierResolver.MatchesSerializedType(typeof(Argon2Hasher), jsonNode))
@@ -34,6 +37,11 @@ namespace InsaneIO.Insane.Cryptography
             }
 
             IEncoder encoder = IEncoder.DeserializeDynamic(jsonNode[nameof(Encoder)]?.ToJsonString() ?? throw new DeserializeException(typeof(Argon2Hasher), json));
+            Argon2Variant variant = (Argon2Variant)(jsonNode[nameof(Argon2Variant)]?.GetValue<int>() ?? throw new DeserializeException(typeof(Argon2Hasher), json));
+            if (!Enum.IsDefined(variant))
+            {
+                throw new DeserializeException(typeof(Argon2Hasher), json);
+            }
 
             return new Argon2Hasher
             {
@@ -43,68 +51,76 @@ namespace InsaneIO.Insane.Cryptography
                 MemorySizeKiB = jsonNode[nameof(MemorySizeKiB)]?.GetValue<uint>() ?? throw new DeserializeException(typeof(Argon2Hasher), json),
                 DegreeOfParallelism = jsonNode[nameof(DegreeOfParallelism)]?.GetValue<uint>() ?? throw new DeserializeException(typeof(Argon2Hasher), json),
                 DerivedKeyLength = jsonNode[nameof(DerivedKeyLength)]?.GetValue<uint>() ?? throw new DeserializeException(typeof(Argon2Hasher), json),
-                Argon2Variant = (Argon2Variant)(jsonNode[nameof(Argon2Variant)]?.GetValue<int>() ?? throw new DeserializeException(typeof(Argon2Hasher), json))
+                Argon2Variant = variant
             };
         }
-
-        public string Serialize(bool indented = false)
+        catch (DeserializeException)
         {
-            return ToJsonObject().ToJsonString(IJsonSerializable.GetIndentOptions(indented));
+            throw;
         }
-
-        public JsonObject ToJsonObject()
+        catch
         {
-            return new JsonObject
-            {
-                [TypeIdentifierResolver.TypeIdentifierJsonPropertyName] = TypeIdentifierResolver.GetTypeIdentifier(typeof(Argon2Hasher)),
-                [nameof(Salt)] = Encoder.Encode(Salt),
-                [nameof(Iterations)] = Iterations,
-                [nameof(MemorySizeKiB)] = MemorySizeKiB,
-                [nameof(DegreeOfParallelism)] = DegreeOfParallelism,
-                [nameof(Argon2Variant)] = Argon2Variant.NumberValue<int>(),
-                [nameof(DerivedKeyLength)] = DerivedKeyLength,
-                [nameof(Encoder)] = Encoder.ToJsonObject(),
-            };
+            throw new DeserializeException(typeof(Argon2Hasher), json);
         }
+    }
 
-        public byte[] Compute(byte[] data)
-        {
-            return data.ComputeArgon2(Salt, Iterations, MemorySizeKiB, DegreeOfParallelism, Argon2Variant, DerivedKeyLength);
-        }
+    public string Serialize(bool indented = false)
+    {
+        return ToJsonObject().ToJsonString(IJsonSerializable.GetIndentOptions(indented));
+    }
 
-        public byte[] Compute(string data)
+    public JsonObject ToJsonObject()
+    {
+        return new JsonObject
         {
-            return data.ComputeArgon2(Salt, Iterations, MemorySizeKiB, DegreeOfParallelism, Argon2Variant, DerivedKeyLength);
-        }
+            [TypeIdentifierResolver.TypeIdentifierJsonPropertyName] = TypeIdentifierResolver.GetTypeIdentifier(typeof(Argon2Hasher)),
+            [nameof(Salt)] = Encoder.Encode(Salt),
+            [nameof(Iterations)] = Iterations,
+            [nameof(MemorySizeKiB)] = MemorySizeKiB,
+            [nameof(DegreeOfParallelism)] = DegreeOfParallelism,
+            [nameof(Argon2Variant)] = Argon2Variant.NumberValue<int>(),
+            [nameof(DerivedKeyLength)] = DerivedKeyLength,
+            [nameof(Encoder)] = Encoder.ToJsonObject(),
+        };
+    }
 
-        public string ComputeEncoded(byte[] data)
-        {
-            return data.ComputeArgon2Encoded(Salt, Encoder, Iterations, MemorySizeKiB, DegreeOfParallelism, Argon2Variant, DerivedKeyLength);
-        }
+    public byte[] Compute(byte[] data)
+    {
+        return data.ComputeArgon2(Salt, Iterations, MemorySizeKiB, DegreeOfParallelism, Argon2Variant, DerivedKeyLength);
+    }
 
-        public string ComputeEncoded(string data)
-        {
-            return data.ComputeArgon2Encoded(Salt, Encoder, Iterations, MemorySizeKiB, DegreeOfParallelism, Argon2Variant, DerivedKeyLength);
-        }
+    public byte[] Compute(string data)
+    {
+        return data.ComputeArgon2(Salt, Iterations, MemorySizeKiB, DegreeOfParallelism, Argon2Variant, DerivedKeyLength);
+    }
 
-        public bool Verify(byte[] data, byte[] expected)
-        {
-            return Compute(data).SequenceEqual(expected);
-        }
+    public string ComputeEncoded(byte[] data)
+    {
+        return data.ComputeArgon2Encoded(Salt, Encoder, Iterations, MemorySizeKiB, DegreeOfParallelism, Argon2Variant, DerivedKeyLength);
+    }
 
-        public bool Verify(string data, byte[] expected)
-        {
-            return Compute(data).SequenceEqual(expected);
-        }
+    public string ComputeEncoded(string data)
+    {
+        return data.ComputeArgon2Encoded(Salt, Encoder, Iterations, MemorySizeKiB, DegreeOfParallelism, Argon2Variant, DerivedKeyLength);
+    }
 
-        public bool VerifyEncoded(byte[] data, string expected)
-        {
-            return ComputeEncoded(data).SequenceEqual(expected);
-        }
+    public bool Verify(byte[] data, byte[] expected)
+    {
+        return Compute(data).SequenceEqual(expected);
+    }
 
-        public bool VerifyEncoded(string data, string expected)
-        {
-            return ComputeEncoded(data).SequenceEqual(expected);
-        }
+    public bool Verify(string data, byte[] expected)
+    {
+        return Compute(data).SequenceEqual(expected);
+    }
+
+    public bool VerifyEncoded(byte[] data, string expected)
+    {
+        return ComputeEncoded(data).SequenceEqual(expected);
+    }
+
+    public bool VerifyEncoded(string data, string expected)
+    {
+        return ComputeEncoded(data).SequenceEqual(expected);
     }
 }

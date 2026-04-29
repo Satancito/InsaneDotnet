@@ -28,11 +28,10 @@
 
 		<UserSecretsId>dcead069-ffae-4de4-be81-720ec8ff2ac7</UserSecretsId>
 		<PackageReleaseNotes><![CDATA[
-- Consolidated TOTP APIs around TotpManager and removed TotpGenerator
-- Added factory helpers and compatibility methods to TotpManager
-- Switched crypto type resolution to TypeIdentifier-only deserialization
-- Moved crypto extensions and enums into clearer project folders
-- Updated cryptography documentation and changelog
+- Expanded public documentation with namespace-based reference pages
+- Added detailed documentation for cryptography, security, and serialization APIs
+- Documented TOTP time-window tolerance and current security behavior
+- Updated README links and package metadata for the new documentation index
 ]]></PackageReleaseNotes>
 		<PackageIcon>Icon.png</PackageIcon>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
@@ -41,10 +40,10 @@
 		<IsPrerelease>false</IsPrerelease>
 		<PrereleaseName>Preview</PrereleaseName>
 		<BuildSuffix>Build</BuildSuffix>
-		<BuildNumber>1189</BuildNumber>
-		<VersionPrefix>10.4.0</VersionPrefix>
+		<BuildNumber>1210</BuildNumber>
+		<VersionPrefix>10.5.0</VersionPrefix>
 		<VersionSuffix></VersionSuffix>
-		<Version>10.4.0</Version>
+		<Version>10.5.0</Version>
 		<LangVersion>latest</LangVersion>
 		<EnablePreviewFeatures>false</EnablePreviewFeatures>
 		<!--<UseBlazorWebAssembly>true</UseBlazorWebAssembly>-->

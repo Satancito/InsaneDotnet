@@ -1,3 +1,4 @@
+using InsaneIO.Insane.Cryptography.Enums;
 using Konscious.Security.Cryptography;
 
 namespace InsaneIO.Insane.Cryptography.Extensions

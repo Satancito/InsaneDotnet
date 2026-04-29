@@ -2,8 +2,9 @@
   <Folder Name="/GithubActions/">
     <File Path=".github/workflows/InsaneIO.Insane-PushToNuget.yml1" />
   </Folder>
-  <Project Path="InsaneIO.Insane.BlazorWaPlayground/InsaneIO.Insane.BlazorWaPlayground.csproj" />
   <Project Path="InsaneIO.CryptSharp.SCrypt/InsaneIO.CryptSharp.SCrypt.csproj" />
+  <Project Path="InsaneIO.Insane.BlazorWaPlayground/InsaneIO.Insane.BlazorWaPlayground.csproj" />
+  <Project Path="InsaneIO.Insane.ConsolePlayground/InsaneIO.Insane.ConsolePlayground.csproj" Id="b9d0f2fa-01c5-471c-ad5e-ce54b557b6ba" />
   <Project Path="InsaneIO.Insane.Tests/InsaneIO.Insane.Tests.csproj" />
   <Project Path="InsaneIO.Insane/InsaneIO.Insane.csproj" />
 </Solution>

@@ -2,6 +2,75 @@
 
 ---
 
+## 10.5.0
+
+This release expands the public documentation set into a namespace-based manual, refreshes the package metadata for the current cryptography and security surface, and documents the latest TOTP and serialization behavior in detail.
+
+### Documentation
+
+Changes:
+
+- Added a namespace documentation index at `Docs/namespaces/Namespaces.md`.
+- Added namespace-level reference pages for all public namespaces.
+- Expanded the documentation for:
+  - concrete cryptography classes
+  - cryptography abstractions
+  - cryptography extension families
+  - security and TOTP APIs
+  - serialization infrastructure
+  - general-purpose extensions and helper contracts
+
+Impact:
+
+- Consumers now have a structured, implementation-aware manual instead of a single broad overview file.
+- The documentation follows the public namespace hierarchy used by the codebase.
+
+### Security / TOTP
+
+Changes:
+
+- Documented `TotpManager`, `TotpExtensions`, and `TotpTimeWindowTolerance` in detail.
+- Documented current-window validation and tolerance windows:
+  - `None`
+  - `OneWindow`
+  - `TwoWindows`
+- Documented URI generation behavior, RFC algorithm names, and MD5 normalization to SHA1 for TOTP.
+- Documented and aligned the current normalization behavior for unsupported TOTP hash choices:
+  - `Md5 -> Sha1`
+  - `Sha384 -> Sha1`
+- Cleaned up TOTP counter/truncation byte-order handling to use explicit big-endian reads and writes.
+
+Impact:
+
+- TOTP consumers now have a clear guide for choosing between direct helpers and the manager API.
+- Time-window tolerance behavior is now explicitly documented.
+
+### Serialization
+
+Changes:
+
+- Expanded documentation for `IJsonSerializable` and `TypeIdentifierResolver`.
+- Documented `TypeIdentifier`-based dynamic deserialization and custom type participation rules.
+
+Impact:
+
+- Consumers implementing custom serializable types now have a clear contract to follow.
+
+### Package Metadata
+
+Changes:
+
+- Bumped `InsaneIO.Insane` to `10.5.0`.
+- Updated package version snippets in `README.md`.
+- Refreshed package release notes to match the current public surface.
+
+### Validation
+
+- Rebuilt the solution.
+- Re-ran the full test suite after the documentation and metadata updates.
+
+---
+
 ## 10.4.0
 
 This version consolidates the TOTP surface, finishes the move to `TypeIdentifier`-only crypto deserialization, and packages the recent cryptography reorganization as a single release.

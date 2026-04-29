@@ -2,7 +2,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Security.Cryptography;
-using InsaneHashAlgorithm = InsaneIO.Insane.Cryptography.HashAlgorithm;
+using InsaneHashAlgorithm = InsaneIO.Insane.Cryptography.Enums.HashAlgorithm;
 
 namespace InsaneIO.Insane.Tests
 {
@@ -39,8 +39,14 @@ namespace InsaneIO.Insane.Tests
         [DynamicData(nameof(HashAlgorithms))]
         public void VerifyHmacFromEncoded_ShouldSupportEveryKeyOverload(InsaneHashAlgorithm algorithm)
         {
+            byte[] expectedBytes = Data.ComputeHmac(Key, algorithm);
             string expected = Data.ComputeHmacEncoded(Key, Base64Encoder.DefaultInstance, algorithm);
 
+            Data.VerifyHmac(Key, expectedBytes, algorithm).Should().BeTrue();
+            Data.VerifyHmac(KeyBytes, expectedBytes, algorithm).Should().BeTrue();
+            DataBytes.VerifyHmac(Key, expectedBytes, algorithm).Should().BeTrue();
+            DataBytes.VerifyHmac(KeyBytes, expectedBytes, algorithm).Should().BeTrue();
+            "other payload".VerifyHmac(Key, expectedBytes, algorithm).Should().BeFalse();
             Data.VerifyHmacFromEncoded(Key, expected, Base64Encoder.DefaultInstance, algorithm).Should().BeTrue();
             Data.VerifyHmacFromEncoded(KeyBytes, expected, Base64Encoder.DefaultInstance, algorithm).Should().BeTrue();
             DataBytes.VerifyHmacFromEncoded(Key, expected, Base64Encoder.DefaultInstance, algorithm).Should().BeTrue();

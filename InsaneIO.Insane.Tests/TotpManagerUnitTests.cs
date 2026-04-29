@@ -58,6 +58,15 @@ namespace InsaneIO.Insane.Tests
         }
 
         [TestMethod]
+        public void ToJsonObject_ShouldContainExpectedTypeIdentifierAndBase32Secret()
+        {
+            JsonObject json = manager.ToJsonObject();
+
+            json["TypeIdentifier"]!.GetValue<string>().Should().Be("Insane-Security-TotpManager");
+            json[nameof(TotpManager.Secret)]!.GetValue<string>().Should().Be(Base32Encoder.DefaultInstance.Encode(manager.Secret));
+        }
+
+        [TestMethod]
         public void FactoryMethods_ShouldCreateEquivalentManagers()
         {
             string base32Secret = Base32Encoder.DefaultInstance.Encode(manager.Secret);
@@ -84,9 +93,54 @@ namespace InsaneIO.Insane.Tests
         }
 
         [TestMethod]
+        public void VerifyCode_ShouldSupportToleranceWindows()
+        {
+            DateTimeOffset now = DateTimeOffset.FromUnixTimeMilliseconds(Codes[0].EpochMilliseconds);
+            string code = manager.ComputeCode(now);
+
+            manager.VerifyCode(code, now.AddSeconds(manager.TimePeriodInSeconds)).Should().BeFalse();
+            manager.VerifyCode(code, now.AddSeconds(manager.TimePeriodInSeconds), TotpTimeWindowTolerance.OneWindow).Should().BeTrue();
+            manager.VerifyTotpCode(code, now.AddSeconds(manager.TimePeriodInSeconds), TotpTimeWindowTolerance.OneWindow)
+                .Should()
+                .Be(manager.VerifyCode(code, now.AddSeconds(manager.TimePeriodInSeconds), TotpTimeWindowTolerance.OneWindow));
+        }
+
+        [TestMethod]
         public void Deserialize_ShouldRejectMismatchedSerializedType()
         {
             string json = HexEncoder.DefaultInstance.Serialize();
+
+            FluentActions.Invoking(() => TotpManager.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void Deserialize_ShouldRejectMissingTypeIdentifier()
+        {
+            string json = TestJsonMutations.RemoveTypeIdentifier(manager.Serialize());
+
+            FluentActions.Invoking(() => TotpManager.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void Deserialize_ShouldRejectMissingSecret()
+        {
+            string json = TestJsonMutations.RemoveProperty(manager.Serialize(), nameof(TotpManager.Secret));
+
+            FluentActions.Invoking(() => TotpManager.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void Deserialize_ShouldRejectMissingLabel()
+        {
+            string json = TestJsonMutations.RemoveProperty(manager.Serialize(), nameof(TotpManager.Label));
+
+            FluentActions.Invoking(() => TotpManager.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void Deserialize_ShouldRejectMissingIssuer()
+        {
+            string json = TestJsonMutations.RemoveProperty(manager.Serialize(), nameof(TotpManager.Issuer));
 
             FluentActions.Invoking(() => TotpManager.Deserialize(json)).Should().Throw<DeserializeException>();
         }
@@ -99,6 +153,14 @@ namespace InsaneIO.Insane.Tests
             json[nameof(TotpManager.HashAlgorithm)] = 999;
 
             FluentActions.Invoking(() => TotpManager.Deserialize(json.ToJsonString())).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void Deserialize_ShouldRejectInvalidTimePeriodInSeconds()
+        {
+            string json = TestJsonMutations.ReplaceProperty(manager.Serialize(), nameof(TotpManager.TimePeriodInSeconds), JsonValue.Create("invalid"));
+
+            FluentActions.Invoking(() => TotpManager.Deserialize(json)).Should().Throw<DeserializeException>();
         }
     }
 }

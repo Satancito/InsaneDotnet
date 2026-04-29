@@ -4,22 +4,22 @@ using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text.Json.Nodes;
 
-namespace InsaneIO.Insane.Cryptography
+namespace InsaneIO.Insane.Serialization
 {
-    internal static class TypeIdentifierResolver
+    public static class TypeIdentifierResolver
     {
-        internal const string TypeIdentifierJsonPropertyName = "TypeIdentifier";
+        public const string TypeIdentifierJsonPropertyName = "TypeIdentifier";
         private static readonly object TypeCacheLock = new();
         private static readonly ConcurrentDictionary<string, Type> TypeCache = new(StringComparer.Ordinal);
         private static int CachedAssemblyCount = -1;
 
-        internal static string GetTypeIdentifier(Type annotatedType)
+        public static string GetTypeIdentifier(Type annotatedType)
         {
             return annotatedType.GetCustomAttribute<TypeIdentifierAttribute>()?.Identifier
                 ?? throw new InvalidOperationException($"Type '{annotatedType.FullName}' is missing {nameof(TypeIdentifierAttribute)}.");
         }
 
-        internal static bool MatchesSerializedType(Type annotatedType, JsonNode jsonNode)
+        public static bool MatchesSerializedType(Type annotatedType, JsonNode jsonNode)
         {
             ArgumentNullException.ThrowIfNull(annotatedType);
             ArgumentNullException.ThrowIfNull(jsonNode);
@@ -34,20 +34,31 @@ namespace InsaneIO.Insane.Cryptography
             ArgumentNullException.ThrowIfNull(contractType);
             ArgumentNullException.ThrowIfNull(jsonNode);
 
-            string typeId = jsonNode[TypeIdentifierJsonPropertyName]?.GetValue<string>()
-                ?? throw new DeserializeException(contractType, json);
-            if (string.IsNullOrWhiteSpace(typeId))
+            try
+            {
+                string typeId = jsonNode[TypeIdentifierJsonPropertyName]?.GetValue<string>()
+                    ?? throw new DeserializeException(contractType, json);
+                if (string.IsNullOrWhiteSpace(typeId))
+                {
+                    throw new DeserializeException(contractType, json);
+                }
+
+                Type implementationType = ResolveByTypeId(typeId);
+                if (!contractType.IsAssignableFrom(implementationType))
+                {
+                    throw new DeserializeException(contractType, json);
+                }
+
+                return implementationType;
+            }
+            catch (DeserializeException)
+            {
+                throw;
+            }
+            catch
             {
                 throw new DeserializeException(contractType, json);
             }
-
-            Type implementationType = ResolveByTypeId(typeId);
-            if (!contractType.IsAssignableFrom(implementationType))
-            {
-                throw new DeserializeException(contractType, json);
-            }
-
-            return implementationType;
         }
 
         internal static object InvokeDeserialize(Type contractType, Type concreteType, string json)

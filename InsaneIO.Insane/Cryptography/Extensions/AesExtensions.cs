@@ -1,8 +1,8 @@
-using InsaneIO.Insane.Cryptography;
+using InsaneIO.Insane.Cryptography.Enums;
 using Microsoft.JSInterop;
 using System.Runtime.Versioning;
 using System.Security.Cryptography;
-using HashAlgorithm = InsaneIO.Insane.Cryptography.HashAlgorithm;
+using HashAlgorithm = InsaneIO.Insane.Cryptography.Enums.HashAlgorithm;
 
 namespace InsaneIO.Insane.Cryptography.Extensions
 {

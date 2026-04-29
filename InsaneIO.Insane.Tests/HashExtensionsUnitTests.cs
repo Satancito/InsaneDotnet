@@ -2,7 +2,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Security.Cryptography;
-using InsaneHashAlgorithm = InsaneIO.Insane.Cryptography.HashAlgorithm;
+using InsaneHashAlgorithm = InsaneIO.Insane.Cryptography.Enums.HashAlgorithm;
 
 namespace InsaneIO.Insane.Tests
 {
@@ -35,11 +35,21 @@ namespace InsaneIO.Insane.Tests
         [DynamicData(nameof(HashAlgorithms))]
         public void VerifyHashFromEncoded_ShouldCompareEncodedHash(InsaneHashAlgorithm algorithm)
         {
+            byte[] expectedBytes = Data.ComputeHash(algorithm);
             string expected = Data.ComputeHashEncoded(HexEncoder.DefaultInstance, algorithm);
 
+            Data.VerifyHash(expectedBytes, algorithm).Should().BeTrue();
+            DataBytes.VerifyHash(expectedBytes, algorithm).Should().BeTrue();
+            OtherData().VerifyHash(expectedBytes, algorithm).Should().BeFalse();
+            Data.ComputeHashEncoded(HexEncoder.DefaultInstance, algorithm).Should().Be(expected);
             Data.VerifyHashFromEncoded(expected, HexEncoder.DefaultInstance, algorithm).Should().BeTrue();
             DataBytes.VerifyHashFromEncoded(expected, HexEncoder.DefaultInstance, algorithm).Should().BeTrue();
             Data.VerifyHashFromEncoded(expected + "00", HexEncoder.DefaultInstance, algorithm).Should().BeFalse();
+        }
+
+        private static string OtherData()
+        {
+            return "other payload";
         }
 
         private static byte[] ComputeFrameworkHash(byte[] data, InsaneHashAlgorithm algorithm)

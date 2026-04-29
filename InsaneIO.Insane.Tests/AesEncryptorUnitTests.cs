@@ -5,10 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using InsaneIO.Insane.Extensions;
-using InsaneIO.Insane.Cryptography;
 using System.Runtime.Versioning;
 using FluentAssertions;
 using System.Security.Cryptography;
+using InsaneIO.Insane.Cryptography.Enums;
 
 namespace InsaneIO.Insane.Tests
 {

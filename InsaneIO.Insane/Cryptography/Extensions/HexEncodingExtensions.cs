@@ -1,42 +1,48 @@
-namespace InsaneIO.Insane.Cryptography.Extensions
+namespace InsaneIO.Insane.Cryptography.Extensions;
+
+public static class HexEncodingExtensions
 {
-    public static class HexEncodingExtensions
+    public static string EncodeToHex(this byte[] data, bool toUpper = false)
     {
-        public static string EncodeToHex(this byte[] data, bool toUpper = false)
+        data.ThrowIfNull();
+        StringBuilder ret = new(string.Empty);
+        foreach (byte value in data)
         {
-            data.ThrowIfNull();
-            StringBuilder ret = new(string.Empty);
-            foreach (byte value in data)
-            {
-                ret.Append(value.ToString(toUpper? "X2": "x2"));
-            }
-            return ret.ToString();
+            ret.Append(value.ToString(toUpper? "X2": "x2"));
+        }
+        return ret.ToString();
+    }
+
+    public static string EncodeToHex(this string data, bool toUpper = false)
+    {
+        return EncodeToHex(data.ToByteArrayUtf8(), toUpper);
+    }
+
+    public static byte[] DecodeFromHex(this string data)
+    {
+        if (data is null)
+        {
+            throw new ArgumentNullException(nameof(data));
         }
 
-        public static string EncodeToHex(this string data, bool toUpper = false)
+        if (data.Length % 2 != 0)
         {
-            return EncodeToHex(data.ToByteArrayUtf8(), toUpper);
+            throw new ArgumentException("Hex data length must be even.", nameof(data));
         }
 
-        public static byte[] DecodeFromHex(this string data)
+        byte[] ret = new byte[data.Length / 2];
+        for (int i = 0; i < data.Length / 2; i++)
         {
-            if (data is null)
-            {
-                throw new ArgumentNullException(nameof(data));
-            }
-
-            if (data.Length % 2 != 0)
-            {
-                throw new ArgumentException("Hex data length must be even.", nameof(data));
-            }
-
-            byte[] ret = new byte[data.Length / 2];
-            for (int i = 0; i < data.Length / 2; i++)
+            try
             {
                 ret[i] = Convert.ToByte(data.Substring(i * 2, 2), 16);
             }
-            return ret;
+            catch (Exception exception) when (exception is FormatException or OverflowException)
+            {
+                throw new ArgumentException("Hex data contains invalid characters.", nameof(data), exception);
+            }
         }
+        return ret;
     }
 }
 

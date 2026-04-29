@@ -122,5 +122,30 @@ namespace InsaneIO.Insane.Tests
 
             FluentActions.Invoking(() => Base32Encoder.Deserialize(json)).Should().Throw<DeserializeException>();
         }
+
+        [TestMethod]
+        public void Deserialize_ShouldRejectMissingTypeIdentifier()
+        {
+            string json = TestJsonMutations.RemoveTypeIdentifier(Base32Encoder.DefaultInstance.Serialize());
+
+            FluentActions.Invoking(() => Base32Encoder.Deserialize(json)).Should().Throw<DeserializeException>();
+            FluentActions.Invoking(() => IEncoder.DeserializeDynamic(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void Deserialize_ShouldRejectMissingRemovePadding()
+        {
+            string json = TestJsonMutations.RemoveProperty(Base32Encoder.DefaultInstance.Serialize(), nameof(Base32Encoder.RemovePadding));
+
+            FluentActions.Invoking(() => Base32Encoder.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void Deserialize_ShouldRejectMissingToLower()
+        {
+            string json = TestJsonMutations.RemoveProperty(Base32Encoder.DefaultInstance.Serialize(), nameof(Base32Encoder.ToLower));
+
+            FluentActions.Invoking(() => Base32Encoder.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
     }
 }

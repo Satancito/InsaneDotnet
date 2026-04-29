@@ -1,68 +1,73 @@
 using InsaneIO.Insane.Attributes;
 using InsaneIO.Insane.Cryptography.Abstractions;
+using InsaneIO.Insane.Cryptography.Enums;
 using InsaneIO.Insane.Exceptions;
+using InsaneIO.Insane.Security.Enums;
+using InsaneIO.Insane.Security.Extensions;
 using InsaneIO.Insane.Serialization;
 using System.Text.Json.Nodes;
 
-namespace InsaneIO.Insane.Security
+namespace InsaneIO.Insane.Security;
+
+/// <summary>
+/// Testing codes in the link - https://totp.danhersam.com/
+/// </summary>
+[TypeIdentifier("Insane-Security-TotpManager")]
+public class TotpManager : IJsonSerializable
 {
-    /// <summary>
-    /// Testing codes in the link - https://totp.danhersam.com/
-    /// </summary>
-    [TypeIdentifier("Insane-Security-TotpManager")]
-    public class TotpManager : IJsonSerializable
+    public required byte[] Secret { get; init; } = null!;
+
+    public required string Label { get; init; } = string.Empty;
+    public required string Issuer { get; init; } = string.Empty;
+    public TwoFactorCodeLength CodeLength { get; init; } = TwoFactorCodeLength.SixDigits;
+    public HashAlgorithm HashAlgorithm { get; init; } = HashAlgorithm.Sha1;
+    public uint TimePeriodInSeconds { get; init; } = TotpExtensions.TotpDefaultPeriod;
+
+    public static TotpManager FromSecret(byte[] secret, string label, string issuer, TwoFactorCodeLength codeLength = TwoFactorCodeLength.SixDigits, HashAlgorithm hashAlgorithm = HashAlgorithm.Sha1, uint timePeriodInSeconds = TotpExtensions.TotpDefaultPeriod)
     {
-        public required byte[] Secret { get; init; } = null!;
-
-        public required string Label { get; init; } = string.Empty;
-        public required string Issuer { get; init; } = string.Empty;
-        public TwoFactorCodeLength CodeLength { get; init; } = TwoFactorCodeLength.SixDigits;
-        public HashAlgorithm HashAlgorithm { get; init; } = HashAlgorithm.Sha1;
-        public uint TimePeriodInSeconds { get; init; } = TotpExtensions.TotpDefaultPeriod;
-
-        public static TotpManager FromSecret(byte[] secret, string label, string issuer, TwoFactorCodeLength codeLength = TwoFactorCodeLength.SixDigits, HashAlgorithm hashAlgorithm = HashAlgorithm.Sha1, uint timePeriodInSeconds = TotpExtensions.TotpDefaultPeriod)
+        return new TotpManager
         {
-            return new TotpManager
-            {
-                Secret = secret,
-                Label = label,
-                Issuer = issuer,
-                CodeLength = codeLength,
-                HashAlgorithm = hashAlgorithm,
-                TimePeriodInSeconds = timePeriodInSeconds
-            };
-        }
+            Secret = secret,
+            Label = label,
+            Issuer = issuer,
+            CodeLength = codeLength,
+            HashAlgorithm = hashAlgorithm,
+            TimePeriodInSeconds = timePeriodInSeconds
+        };
+    }
 
-        public static TotpManager FromBase32Secret(string base32EncodedSecret, string label, string issuer, TwoFactorCodeLength codeLength = TwoFactorCodeLength.SixDigits, HashAlgorithm hashAlgorithm = HashAlgorithm.Sha1, uint timePeriodInSeconds = TotpExtensions.TotpDefaultPeriod)
+    public static TotpManager FromBase32Secret(string base32EncodedSecret, string label, string issuer, TwoFactorCodeLength codeLength = TwoFactorCodeLength.SixDigits, HashAlgorithm hashAlgorithm = HashAlgorithm.Sha1, uint timePeriodInSeconds = TotpExtensions.TotpDefaultPeriod)
+    {
+        return FromSecret(Base32Encoder.DefaultInstance.Decode(base32EncodedSecret), label, issuer, codeLength, hashAlgorithm, timePeriodInSeconds);
+    }
+
+    public static TotpManager FromEncodedSecret(string encodedSecret, IEncoder secretDecoder, string label, string issuer, TwoFactorCodeLength codeLength = TwoFactorCodeLength.SixDigits, HashAlgorithm hashAlgorithm = HashAlgorithm.Sha1, uint timePeriodInSeconds = TotpExtensions.TotpDefaultPeriod)
+    {
+        return FromSecret(secretDecoder.Decode(encodedSecret), label, issuer, codeLength, hashAlgorithm, timePeriodInSeconds);
+    }
+
+    public string Serialize(bool indented = true)
+    {
+        return ToJsonObject().ToJsonString(IJsonSerializable.GetIndentOptions(indented));
+    }
+
+    public JsonObject ToJsonObject()
+    {
+        return new JsonObject
         {
-            return FromSecret(Base32Encoder.DefaultInstance.Decode(base32EncodedSecret), label, issuer, codeLength, hashAlgorithm, timePeriodInSeconds);
-        }
+            [TypeIdentifierResolver.TypeIdentifierJsonPropertyName] = TypeIdentifierResolver.GetTypeIdentifier(typeof(TotpManager)),
+            [nameof(Secret)] = Base32Encoder.DefaultInstance.Encode(Secret),
+            [nameof(Label)] = Label,
+            [nameof(Issuer)] = Issuer,
+            [nameof(CodeLength)] = CodeLength.NumberValue<int>(),
+            [nameof(HashAlgorithm)] = HashAlgorithm.NumberValue<int>(),
+            [nameof(TimePeriodInSeconds)] = TimePeriodInSeconds,
+        };
+    }
 
-        public static TotpManager FromEncodedSecret(string encodedSecret, IEncoder secretDecoder, string label, string issuer, TwoFactorCodeLength codeLength = TwoFactorCodeLength.SixDigits, HashAlgorithm hashAlgorithm = HashAlgorithm.Sha1, uint timePeriodInSeconds = TotpExtensions.TotpDefaultPeriod)
-        {
-            return FromSecret(secretDecoder.Decode(encodedSecret), label, issuer, codeLength, hashAlgorithm, timePeriodInSeconds);
-        }
-
-        public string Serialize(bool indented = true)
-        {
-            return ToJsonObject().ToJsonString(IJsonSerializable.GetIndentOptions(indented));
-        }
-
-        public JsonObject ToJsonObject()
-        {
-            return new JsonObject
-            {
-                [TypeIdentifierResolver.TypeIdentifierJsonPropertyName] = TypeIdentifierResolver.GetTypeIdentifier(typeof(TotpManager)),
-                [nameof(Secret)] = Base32Encoder.DefaultInstance.Encode(Secret),
-                [nameof(Label)] = Label,
-                [nameof(Issuer)] = Issuer,
-                [nameof(CodeLength)] = CodeLength.NumberValue<int>(),
-                [nameof(HashAlgorithm)] = HashAlgorithm.NumberValue<int>(),
-                [nameof(TimePeriodInSeconds)] = TimePeriodInSeconds,
-            };
-        }
-
-        public static TotpManager Deserialize(string json)
+    public static TotpManager Deserialize(string json)
+    {
+        try
         {
             JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(typeof(TotpManager), json);
             if (!TypeIdentifierResolver.MatchesSerializedType(typeof(TotpManager), jsonNode))
@@ -88,75 +93,103 @@ namespace InsaneIO.Insane.Security
                 TimePeriodInSeconds = jsonNode[nameof(TimePeriodInSeconds)]?.GetValue<uint>() ?? throw new DeserializeException(typeof(TotpManager), json)
             };
         }
-
-        public string ToOtpUri()
+        catch (DeserializeException)
         {
-            return Secret.GenerateTotpUri(Label, Issuer, HashAlgorithm, CodeLength, TimePeriodInSeconds);
+            throw;
         }
-
-        public string GenerateTotpUri()
+        catch
         {
-            return ToOtpUri();
+            throw new DeserializeException(typeof(TotpManager), json);
         }
+    }
 
-        public bool VerifyCode(string code)
-        {
-            return code.VerifyTotpCode(Secret, CodeLength, HashAlgorithm, TimePeriodInSeconds);
-        }
+    public string ToOtpUri()
+    {
+        return Secret.GenerateTotpUri(Label, Issuer, HashAlgorithm, CodeLength, TimePeriodInSeconds);
+    }
 
-        public bool VerifyCode(string code, DateTimeOffset now)
-        {
-            return code.VerifyTotpCode(Secret, now, CodeLength, HashAlgorithm, TimePeriodInSeconds);
-        }
+    public string GenerateTotpUri()
+    {
+        return ToOtpUri();
+    }
 
-        public bool VerifyTotpCode(string code)
-        {
-            return VerifyCode(code);
-        }
+    public bool VerifyCode(string code)
+    {
+        return code.VerifyTotpCode(Secret, CodeLength, HashAlgorithm, TimePeriodInSeconds);
+    }
 
-        public bool VerifyTotpCode(string code, DateTimeOffset now)
-        {
-            return VerifyCode(code, now);
-        }
+    public bool VerifyCode(string code, TotpTimeWindowTolerance tolerance)
+    {
+        return code.VerifyTotpCode(Secret, tolerance, CodeLength, HashAlgorithm, TimePeriodInSeconds);
+    }
 
-        public string ComputeCode()
-        {
-            return Secret.ComputeTotpCode(CodeLength, HashAlgorithm, TimePeriodInSeconds);
-        }
+    public bool VerifyCode(string code, DateTimeOffset now)
+    {
+        return code.VerifyTotpCode(Secret, now, CodeLength, HashAlgorithm, TimePeriodInSeconds);
+    }
 
-        public string ComputeCode(DateTimeOffset now)
-        {
-            return Secret.ComputeTotpCode(now, CodeLength, HashAlgorithm, TimePeriodInSeconds);
-        }
+    public bool VerifyCode(string code, DateTimeOffset now, TotpTimeWindowTolerance tolerance)
+    {
+        return code.VerifyTotpCode(Secret, now, tolerance, CodeLength, HashAlgorithm, TimePeriodInSeconds);
+    }
 
-        public string ComputeTotpCode()
-        {
-            return ComputeCode();
-        }
+    public bool VerifyTotpCode(string code)
+    {
+        return VerifyCode(code);
+    }
 
-        public string ComputeTotpCode(DateTimeOffset now)
-        {
-            return ComputeCode(now);
-        }
+    public bool VerifyTotpCode(string code, TotpTimeWindowTolerance tolerance)
+    {
+        return VerifyCode(code, tolerance);
+    }
 
-        public long ComputeRemainingSeconds()
-        {
-            return DateTimeOffset.UtcNow.ComputeTotpRemainingSeconds(TimePeriodInSeconds);
-        }
+    public bool VerifyTotpCode(string code, DateTimeOffset now)
+    {
+        return VerifyCode(code, now);
+    }
 
-        public long ComputeRemainingSeconds(DateTimeOffset now)
-        {
-            return now.ComputeTotpRemainingSeconds(TimePeriodInSeconds);
-        }
+    public bool VerifyTotpCode(string code, DateTimeOffset now, TotpTimeWindowTolerance tolerance)
+    {
+        return VerifyCode(code, now, tolerance);
+    }
 
-        public long ComputeTotpRemainingSeconds()
-        {
-            return ComputeRemainingSeconds();
-        }
+    public string ComputeCode()
+    {
+        return Secret.ComputeTotpCode(CodeLength, HashAlgorithm, TimePeriodInSeconds);
+    }
 
-        public long ComputeTotpRemainingSeconds(DateTimeOffset now)
-        {
-            return ComputeRemainingSeconds(now);
-        }
+    public string ComputeCode(DateTimeOffset now)
+    {
+        return Secret.ComputeTotpCode(now, CodeLength, HashAlgorithm, TimePeriodInSeconds);
+    }
+
+    public string ComputeTotpCode()
+    {
+        return ComputeCode();
+    }
+
+    public string ComputeTotpCode(DateTimeOffset now)
+    {
+        return ComputeCode(now);
+    }
+
+    public long ComputeRemainingSeconds()
+    {
+        return DateTimeOffset.UtcNow.ComputeTotpRemainingSeconds(TimePeriodInSeconds);
+    }
+
+    public long ComputeRemainingSeconds(DateTimeOffset now)
+    {
+        return now.ComputeTotpRemainingSeconds(TimePeriodInSeconds);
+    }
+
+    public long ComputeTotpRemainingSeconds()
+    {
+        return ComputeRemainingSeconds();
+    }
+
+    public long ComputeTotpRemainingSeconds(DateTimeOffset now)
+    {
+        return ComputeRemainingSeconds(now);
     }
 }

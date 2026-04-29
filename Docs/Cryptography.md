@@ -1,40 +1,477 @@
 # Cryptography
 
-This document describes the `InsaneIO.Insane.Cryptography` namespace, the shared contracts in `InsaneIO.Insane.Cryptography.Abstractions`, the extension methods in `InsaneIO.Insane.Cryptography.Extensions`, and the supporting helpers in `InsaneIO.Insane.Extensions`.
+This document is the single-file reference for the public cryptography surface of `InsaneIO.Insane`.
 
-The library provides:
+It covers:
 
-- Encoders for converting bytes to text: Base64, Base32, and Hex
-- General text and byte conversion helpers
-- Plain hashes: MD5, SHA-1, SHA-256, SHA-384, and SHA-512
-- HMAC with the same algorithms
-- Key derivation with Scrypt and Argon2
-- Symmetric encryption with AES-CBC
-- Asymmetric encryption with RSA
-- Serializable encryptors, hashers, encoders, key pairs, and TOTP configuration
-- Blazor WebAssembly interop methods through `IJSRuntime`
+- public cryptography namespaces
+- concrete cryptography classes
+- interfaces and serialization contracts
+- enums
+- extension/helper APIs
+- dynamic deserialization
+- `IJSRuntime` cryptography helpers where they are publicly exposed
 
-Common namespaces:
+For readers who prefer the namespace tree, the structured index is still available at [Docs/namespaces/Namespaces.md](namespaces/Namespaces.md).
+
+## Covered namespaces
+
+- `InsaneIO.Insane.Cryptography`
+- `InsaneIO.Insane.Cryptography.Abstractions`
+- `InsaneIO.Insane.Cryptography.Enums`
+- `InsaneIO.Insane.Cryptography.Extensions`
+- `InsaneIO.Insane.Serialization`
+- `InsaneIO.Insane.Attributes`
+- selected shared helpers from `InsaneIO.Insane.Extensions` and `InsaneIO.Insane`
+
+## How the cryptography API is organized
+
+The package gives you two main ways to work:
+
+1. Direct helper/extension calls
+2. Configurable serializable objects
+
+### Direct helpers
+
+Use extension methods when you want one-off work without object setup.
 
 ```csharp
 using InsaneIO.Insane.Cryptography;
-using InsaneIO.Insane.Cryptography.Abstractions;
+using InsaneIO.Insane.Cryptography.Enums;
 using InsaneIO.Insane.Cryptography.Extensions;
-using InsaneIO.Insane.Extensions;
+
+string sha256 = "payload".ComputeHashEncoded(HexEncoder.DefaultInstance, HashAlgorithm.Sha256);
+string cipher = "payload".EncryptAesCbcEncoded("password", Base64Encoder.DefaultInstance, AesCbcPadding.Pkcs7);
 ```
 
-## Core Concepts
+### Configurable objects
 
-The API usually offers two usage styles.
+Use concrete classes when you want:
 
-The first style uses extension methods directly on `string` or `byte[]`:
+- reusable configuration
+- serialization/deserialization
+- dependency injection or stateful composition
+- polymorphic storage through interfaces
 
 ```csharp
-string hash = "Hello".ComputeHashEncoded(HexEncoder.DefaultInstance, HashAlgorithm.Sha256);
-string encrypted = "Hello".EncryptAesCbcEncoded("12345678", Base64Encoder.DefaultInstance);
+using InsaneIO.Insane.Cryptography;
+using InsaneIO.Insane.Cryptography.Enums;
+
+var hasher = new ShaHasher
+{
+    HashAlgorithm = HashAlgorithm.Sha256,
+    Encoder = HexEncoder.DefaultInstance
+};
+
+string digest = hasher.ComputeEncoded("payload");
+string json = hasher.Serialize(indented: true);
 ```
 
-The second style uses configurable classes:
+### String overloads
+
+Across the cryptography API, overloads that accept `string` convert the input to UTF-8 bytes before processing.
+
+### Encoded overloads
+
+Methods ending in `Encoded` return text by passing raw bytes through an `IEncoder`.
+
+Methods containing `FromEncoded` expect already encoded text, decode it through the supplied `IEncoder`, and continue with the cryptographic operation.
+
+## TypeIdentifier-based serialization and dynamic deserialization
+
+The current design no longer uses CLR type names or assembly names as public serialized identity.
+
+Instead, concrete serializable cryptography types are decorated with:
+
+- `TypeIdentifierAttribute`
+
+and serialized with a root JSON property:
+
+- `TypeIdentifier`
+
+### Public pieces involved
+
+- `TypeIdentifierAttribute`
+- `IJsonSerializable`
+- `TypeIdentifierResolver`
+- `IEncoder.DeserializeDynamic(string json)`
+- `IHasher.DeserializeDynamic(string json)`
+- `IEncryptor.DeserializeDynamic(string json)`
+
+### Resolution rules
+
+Dynamic deserialization:
+
+1. parses the JSON
+2. reads `TypeIdentifier`
+3. resolves a unique decorated concrete type
+4. validates that the resolved type implements the expected contract
+5. invokes the concrete static `Deserialize(string json)` method
+
+There is no fallback to:
+
+- `AssemblyName`
+- CLR type names
+- class names
+
+### Practical implication
+
+If the JSON is missing `TypeIdentifier`, uses the wrong one, or points to a type that does not implement the requested interface, deserialization fails with `DeserializeException`.
+
+## Public contracts
+
+### IJsonSerializable
+
+Namespace: `InsaneIO.Insane.Serialization`
+
+Shared JSON contract:
+
+- `JsonObject ToJsonObject()`
+- `string Serialize(bool indented = false)`
+- `static JsonSerializerOptions GetIndentOptions(bool indented)`
+
+### IEncoder
+
+Namespace: `InsaneIO.Insane.Cryptography.Abstractions`
+
+Represents a byte-to-text codec.
+
+Members:
+
+- `Encode(byte[] data)`
+- `Encode(string data)`
+- `Decode(string data)`
+- `static DeserializeDynamic(string json)`
+
+### IHasher
+
+Represents a configured digest, HMAC, or key-derivation component.
+
+Members:
+
+- `Compute(...)`
+- `ComputeEncoded(...)`
+- `Verify(...)`
+- `VerifyEncoded(...)`
+- `static DeserializeDynamic(string json)`
+
+### IEncryptor
+
+Represents a configured encryption component.
+
+Members:
+
+- `Encrypt(...)`
+- `EncryptEncoded(...)`
+- `Decrypt(...)`
+- `DecryptEncoded(...)`
+- `static DeserializeDynamic(string json)`
+
+### IRsaKeyPairSerializable
+
+Serialization contract for `RsaKeyPair`.
+
+## Public enums
+
+### AesCbcPadding
+
+- `None`
+- `Zeros`
+- `Pkcs7`
+- `AnsiX923`
+
+Controls AES-CBC padding behavior.
+
+### Argon2Variant
+
+- `Argon2d`
+- `Argon2i`
+- `Argon2id`
+
+Controls which Argon2 family is used.
+
+### Base64Encoding
+
+- `Base64`
+- `UrlSafeBase64`
+- `FileNameSafeBase64`
+- `UrlEncodedBase64`
+
+Controls `Base64Encoder` output mode.
+
+### EncoderType
+
+- `Hex`
+- `Base32`
+- `Base64`
+
+Logical encoder families.
+
+### HashAlgorithm
+
+- `Md5`
+- `Sha1`
+- `Sha256`
+- `Sha384`
+- `Sha512`
+
+Used by hashing, HMAC, and TOTP configuration. For TOTP specifically, `Md5` and `Sha384` are normalized to `Sha1`.
+
+### RsaKeyEncoding
+
+- `Unknown`
+- `BerPublic`
+- `BerPrivate`
+- `PemPublic`
+- `PemPrivate`
+- `XmlPublic`
+- `XmlPrivate`
+
+Represents detected format for a single RSA key.
+
+### RsaKeyPairEncoding
+
+- `Ber`
+- `Pem`
+- `Xml`
+
+Controls the output format of generated key pairs.
+
+### RsaPadding
+
+- `Pkcs1`
+- `OaepSha1`
+- `OaepSha256`
+- `OaepSha384`
+- `OaepSha512`
+
+Controls RSA encryption padding.
+
+## Encoders
+
+## Base32Encoder
+
+Namespace: `InsaneIO.Insane.Cryptography`
+
+`Base32Encoder` is a configurable Base32 codec with control over:
+
+- lowercase output
+- optional padding removal
+
+### Properties
+
+- `ToLower`
+- `RemovePadding`
+- `DefaultInstance`
+
+Defaults:
+
+- `ToLower = false`
+- `RemovePadding = false`
+
+### Methods
+
+- `Encode(byte[] data)`
+- `Encode(string data)`
+- `Decode(string data)`
+- `ToJsonObject()`
+- `Serialize(bool indented = false)`
+- `static Deserialize(string json)`
+
+### Serialization
+
+JSON shape:
+
+```json
+{
+  "TypeIdentifier": "Insane-Cryptography-Base32Encoder",
+  "RemovePadding": false,
+  "ToLower": false
+}
+```
+
+`Deserialize(...)` requires:
+
+- correct `TypeIdentifier`
+- `RemovePadding`
+- `ToLower`
+
+### Typical usage
+
+```csharp
+var encoder = new Base32Encoder
+{
+    RemovePadding = true,
+    ToLower = true
+};
+
+string text = encoder.Encode("insane");
+byte[] bytes = encoder.Decode(text);
+```
+
+## Base64Encoder
+
+`Base64Encoder` wraps the Base64 extension family in an object-oriented, serializable form.
+
+### Properties
+
+- `LineBreaksLength`
+- `RemovePadding`
+- `EncodingType`
+- `DefaultInstance`
+
+Defaults:
+
+- `LineBreaksLength = 0`
+- `RemovePadding = false`
+- `EncodingType = Base64Encoding.Base64`
+
+Exposed constants:
+
+- `NoLineBreaks = 0`
+- `MimeLineBreaksLength = 76`
+- `PemLineBreaksLength = 64`
+
+### Supported output modes
+
+- regular Base64
+- URL-safe Base64
+- filename-safe Base64
+- URL-encoded Base64
+
+### Methods
+
+- `Encode(byte[] data)`
+- `Encode(string data)`
+- `Decode(string data)`
+- `ToJsonObject()`
+- `Serialize(...)`
+- `static Deserialize(string json)`
+
+### Serialization
+
+JSON shape:
+
+```json
+{
+  "TypeIdentifier": "Insane-Cryptography-Base64Encoder",
+  "LineBreaksLength": 0,
+  "RemovePadding": false,
+  "EncodingType": 0
+}
+```
+
+`EncodingType` is serialized numerically.
+
+`Deserialize(...)` rejects:
+
+- missing `TypeIdentifier`
+- wrong type identifier
+- missing `LineBreaksLength`
+- missing `RemovePadding`
+- missing `EncodingType`
+- undefined enum values
+
+### Example
+
+```csharp
+var encoder = new Base64Encoder
+{
+    LineBreaksLength = Base64Encoder.MimeLineBreaksLength,
+    RemovePadding = false,
+    EncodingType = Base64Encoding.Base64
+};
+
+string encoded = encoder.Encode("payload");
+byte[] decoded = encoder.Decode(encoded);
+```
+
+## HexEncoder
+
+`HexEncoder` wraps lowercase or uppercase hexadecimal text encoding.
+
+### Properties
+
+- `ToUpper`
+- `DefaultInstance`
+
+Default:
+
+- `ToUpper = false`
+
+### Methods
+
+- `Encode(byte[] data)`
+- `Encode(string data)`
+- `Decode(string data)`
+- `Serialize(...)`
+- `static Deserialize(string json)`
+
+### Serialization
+
+JSON shape:
+
+```json
+{
+  "TypeIdentifier": "Insane-Cryptography-HexEncoder",
+  "ToUpper": true
+}
+```
+
+### Example
+
+```csharp
+var encoder = new HexEncoder { ToUpper = true };
+string encoded = encoder.Encode("payload");
+byte[] raw = encoder.Decode(encoded);
+```
+
+## Hashers
+
+## ShaHasher
+
+`ShaHasher` is the serializable object wrapper for plain hash computation.
+
+### Properties
+
+- `HashAlgorithm`
+- `Encoder`
+
+Defaults:
+
+- `HashAlgorithm = Sha512`
+- `Encoder = Base64Encoder.DefaultInstance`
+
+### Methods
+
+- `Compute(byte[] data)`
+- `Compute(string data)`
+- `ComputeEncoded(byte[] data)`
+- `ComputeEncoded(string data)`
+- `Verify(...)`
+- `VerifyEncoded(...)`
+- `Serialize(...)`
+- `static Deserialize(string json)`
+
+### Behavior
+
+- uses the selected hash algorithm
+- string inputs are UTF-8
+- encoded output uses the configured encoder
+
+### Serialization
+
+JSON shape:
+
+```json
+{
+  "TypeIdentifier": "Insane-Cryptography-ShaHasher",
+  "HashAlgorithm": 2,
+  "Encoder": { ... }
+}
+```
+
+### Example
 
 ```csharp
 var hasher = new ShaHasher
@@ -43,565 +480,566 @@ var hasher = new ShaHasher
     Encoder = HexEncoder.DefaultInstance
 };
 
-string hash = hasher.ComputeEncoded("Hello");
+string digest = hasher.ComputeEncoded("payload");
+bool ok = hasher.VerifyEncoded("payload", digest);
 ```
 
-Overloads that receive `string` convert the text to UTF-8 bytes before operating. Overloads ending with `Encoded` return text encoded with an `IEncoder`; methods containing `FromEncoded` accept already encoded text, decode it with the provided `IEncoder`, and then verify or decrypt it.
+## HmacHasher
 
-In algorithm-specific extension methods, the naming order is `Action + Algorithm + Format`, for example `ComputeHashEncoded`, `VerifyHmacFromEncoded`, `ComputeScryptEncoded`, `DecryptAesCbcFromEncoded`, `EncryptAesCbcEncoded`, or `EncryptRsaEncoded`. Generic contracts keep algorithm-free names such as `EncryptEncoded`, `DecryptEncoded`, `ComputeEncoded`, and `VerifyEncoded`.
+`HmacHasher` is the serializable object wrapper for keyed HMAC computation.
 
-## Interfaces
+### Properties
 
-The serialization and runtime contracts live in `InsaneIO.Insane.Cryptography.Abstractions`.
+- `HashAlgorithm`
+- `Encoder`
+- `KeyString`
+- `KeyBytes`
 
-### IJsonSerializable
+Defaults:
 
-Common contract for JSON-convertible objects.
+- `HashAlgorithm = Sha512`
+- `Encoder = Base64Encoder.DefaultInstance`
+- internal random key generated automatically
 
-| Member | Type | Description |
-| --- | --- | --- |
-| `ToJsonObject()` | `JsonObject` | Builds the JSON representation of the object. |
-| `Serialize(bool indented = false)` | `string` | Returns the JSON as text. |
-| `GetIndentOptions(bool indented)` | `static JsonSerializerOptions` | Returns serializer options with or without indentation. |
+### Key configuration
 
-### IEncoder
+- use `KeyString` for convenient textual initialization
+- use `KeyBytes` when exact binary material matters
 
-Common contract for byte-to-text encoders.
+### Methods
 
-| Method | Return | Description |
-| --- | --- | --- |
-| `Encode(byte[] data)` | `string` | Encodes bytes to text. |
-| `Encode(string data)` | `string` | Converts text to UTF-8 and encodes it. |
-| `Decode(string data)` | `byte[]` | Decodes the text back to the original byte array. |
-| `DeserializeDynamic(string json)` | `IEncoder` | Resolves the concrete type through `TypeIdentifier` and dispatches to the correct `Deserialize(string)` implementation. |
+Same method family as `ShaHasher`:
 
-### IEncoderJsonSerializable
+- `Compute(...)`
+- `ComputeEncoded(...)`
+- `Verify(...)`
+- `VerifyEncoded(...)`
+- serialization methods
 
-Extends `IJsonSerializable` and requires:
+### Serialization
+
+The key is serialized encoded through the configured encoder.
+
+### Example
 
 ```csharp
-public static abstract IEncoder Deserialize(string json);
+var hasher = new HmacHasher
+{
+    KeyString = "shared-secret",
+    HashAlgorithm = HashAlgorithm.Sha384,
+    Encoder = Base64Encoder.DefaultInstance
+};
+
+string mac = hasher.ComputeEncoded("payload");
 ```
 
-### IEncryptor
+## ScryptHasher
 
-Common contract for encryptors.
+`ScryptHasher` wraps SCrypt key derivation in a reusable object.
 
-| Method | Return | Description |
-| --- | --- | --- |
-| `Encrypt(byte[] data)` | `byte[]` | Encrypts bytes and returns ciphertext bytes. |
-| `Encrypt(string data)` | `byte[]` | Converts text to UTF-8 and encrypts the bytes. |
-| `EncryptEncoded(byte[] data)` | `string` | Encrypts bytes and encodes the ciphertext with the configured encoder. |
-| `EncryptEncoded(string data)` | `string` | Converts text to UTF-8, encrypts it, and encodes the result. |
-| `Decrypt(byte[] data)` | `byte[]` | Decrypts ciphertext bytes. |
-| `DecryptEncoded(string data)` | `byte[]` | Decodes the encrypted text with the configured encoder and then decrypts it. |
-| `DeserializeDynamic(string json)` | `IEncryptor` | Resolves the concrete type through `TypeIdentifier` and dispatches to the correct `Deserialize(string)` implementation. |
+### Properties
 
-### IEncryptorJsonSerializable
+- `SaltString`
+- `SaltBytes`
+- `Iterations`
+- `BlockSize`
+- `Parallelism`
+- `DerivedKeyLength`
+- `Encoder`
 
-Extends `IJsonSerializable` and requires:
+Defaults come from `Constants`:
+
+- `ScryptIterations`
+- `ScryptBlockSize`
+- `ScryptParallelism`
+- `ScryptDerivedKeyLength`
+- random salt of `ScryptSaltSize`
+
+### Methods
+
+- `Compute(...)`
+- `ComputeEncoded(...)`
+- `Verify(...)`
+- `VerifyEncoded(...)`
+- serialization methods
+
+### Typical usage
 
 ```csharp
-public static abstract IEncryptor Deserialize(string json);
+var hasher = new ScryptHasher
+{
+    SaltString = "salt",
+    Iterations = 16384,
+    BlockSize = 8,
+    Parallelism = 1,
+    DerivedKeyLength = 64,
+    Encoder = Base64Encoder.DefaultInstance
+};
+
+string derived = hasher.ComputeEncoded("password");
 ```
 
-### IHasher
+## Argon2Hasher
 
-Common contract for hashers and key-derivation wrappers.
+`Argon2Hasher` wraps Argon2 derivation with fully configurable work factors.
 
-| Method | Return | Description |
-| --- | --- | --- |
-| `Compute(byte[] data)` | `byte[]` | Computes the hash or derived value as bytes. |
-| `Compute(string data)` | `byte[]` | Converts text to UTF-8 and computes the result. |
-| `ComputeEncoded(byte[] data)` | `string` | Computes the result and encodes it with the configured encoder. |
-| `ComputeEncoded(string data)` | `string` | Converts text to UTF-8, computes the result, and encodes it. |
-| `Verify(byte[] data, byte[] expected)` | `bool` | Recomputes and compares to the expected bytes. |
-| `Verify(string data, byte[] expected)` | `bool` | Converts text to UTF-8, recomputes, and compares. |
-| `VerifyEncoded(byte[] data, string expected)` | `bool` | Recomputes, encodes, and compares to the expected text. |
-| `VerifyEncoded(string data, string expected)` | `bool` | Converts text to UTF-8, recomputes, encodes, and compares. |
-| `DeserializeDynamic(string json)` | `IHasher` | Resolves the concrete type through `TypeIdentifier` and dispatches to the correct `Deserialize(string)` implementation. |
+### Properties
 
-### IHasherJsonSerializable
+- `SaltString`
+- `SaltBytes`
+- `Encoder`
+- `Iterations`
+- `MemorySizeKiB`
+- `DegreeOfParallelism`
+- `DerivedKeyLength`
+- `Argon2Variant`
 
-Extends `IJsonSerializable` and requires:
+Defaults:
+
+- random salt
+- `Iterations = Constants.Argon2Iterations`
+- `MemorySizeKiB = Constants.Argon2MemorySizeInKiB`
+- `DegreeOfParallelism = Constants.Argon2DegreeOfParallelism`
+- `DerivedKeyLength = Constants.Argon2DerivedKeyLength`
+- `Argon2Variant = Argon2Variant.Argon2id`
+
+### Methods
+
+- `Compute(...)`
+- `ComputeEncoded(...)`
+- `Verify(...)`
+- `VerifyEncoded(...)`
+- serialization methods
+
+### Example
 
 ```csharp
-public static abstract IHasher Deserialize(string json);
+var hasher = new Argon2Hasher
+{
+    SaltString = "salt",
+    Iterations = 2,
+    MemorySizeKiB = 16384,
+    DegreeOfParallelism = 4,
+    DerivedKeyLength = 64,
+    Argon2Variant = Argon2Variant.Argon2id,
+    Encoder = Base64Encoder.DefaultInstance
+};
+
+string derived = hasher.ComputeEncoded("password");
 ```
 
-### IRsaKeyPairJsonSerializable
+## Encryptors
 
-Extends `IJsonSerializable` and requires:
+## AesCbcEncryptor
+
+`AesCbcEncryptor` is the serializable object wrapper for AES-CBC operations.
+
+### Properties
+
+- `KeyString`
+- `KeyBytes`
+- `Encoder`
+- `Padding`
+
+Defaults:
+
+- random internal key
+- `Encoder = Base64Encoder.DefaultInstance`
+- `Padding = AesCbcPadding.Pkcs7`
+
+### Important behavior
+
+- key input must be at least 8 bytes
+- the key is normalized by hashing with SHA-512 and taking the first 32 bytes
+- ciphertext format is `ciphertext || iv`
+
+### Methods
+
+- `Encrypt(byte[] data)`
+- `Encrypt(string data)`
+- `EncryptEncoded(byte[] data)`
+- `EncryptEncoded(string data)`
+- `Decrypt(byte[] data)`
+- `DecryptEncoded(string data)`
+- `Serialize(...)`
+- `static Deserialize(string json)`
+
+### Example
 
 ```csharp
-public static abstract RsaKeyPair Deserialize(string json);
+var encryptor = new AesCbcEncryptor
+{
+    KeyString = "super-secret-password",
+    Encoder = Base64Encoder.DefaultInstance,
+    Padding = AesCbcPadding.Pkcs7
+};
+
+string cipher = encryptor.EncryptEncoded("payload");
+string clear = encryptor.DecryptEncoded(cipher).ToStringUtf8();
 ```
 
-## TypeIdentifier
+## RsaKeyPair
 
-Encoders, hashers, encryptors, and `RsaKeyPair` serialize a root `TypeIdentifier` field. Dynamic deserialization uses that identifier to resolve the concrete type.
+`RsaKeyPair` is the serializable model for a public/private RSA pair.
 
-This mechanism is powered by:
+### Properties
 
-- `TypeIdentifierAttribute`
-- `TypeIdentifierResolver`
-- the interface-level `DeserializeDynamic(string json)` helpers
+- `PublicKey`
+- `PrivateKey`
 
-There is no `AssemblyName` fallback anymore. If `TypeIdentifier` is missing, invalid, or points to another type, deserialization throws `DeserializeException`.
+### Serialization
 
-Example root JSON shape:
+JSON shape:
 
 ```json
 {
-  "TypeIdentifier": "Insane-Cryptography-Base64Encoder"
+  "TypeIdentifier": "Insane-Cryptography-RsaKeyPair",
+  "PublicKey": "...",
+  "PrivateKey": "..."
 }
 ```
 
-## Custom Implementations
+Current `Deserialize(...)` behavior requires both keys to be present and non-whitespace.
 
-You can implement your own `IEncoder`, `IHasher`, or `IEncryptor` in another assembly and still participate in dynamic deserialization.
-
-Requirements:
-
-- implement the corresponding interface from `InsaneIO.Insane.Cryptography.Abstractions`
-- add `TypeIdentifierAttribute` with a stable identifier
-- include `TypeIdentifier` in `ToJsonObject()`
-- implement `public static Deserialize(string json)` for the concrete type
-
-### Custom IEncoder
+### Typical flow
 
 ```csharp
-using InsaneIO.Insane.Cryptography;
-using InsaneIO.Insane.Cryptography.Abstractions;
-using InsaneIO.Insane.Cryptography.Attributes;
-using InsaneIO.Insane.Exceptions;
-using InsaneIO.Insane.Serialization;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Nodes;
-
-[TypeIdentifier("MyCompany-Cryptography-BinaryEncoder")]
-public sealed class BinaryEncoder : IEncoder
-{
-    public string Encode(byte[] data)
-    {
-        return string.Concat(data.Select(value => Convert.ToString(value, 2)!.PadLeft(8, '0')));
-    }
-
-    public string Encode(string data)
-    {
-        return Encode(Encoding.UTF8.GetBytes(data));
-    }
-
-    public byte[] Decode(string data)
-    {
-        ArgumentNullException.ThrowIfNull(data);
-
-        if (data.Length % 8 != 0 || data.Any(character => character != '0' && character != '1'))
-        {
-            throw new ArgumentException("Binary input must contain only 0 and 1 and be a multiple of 8 bits.", nameof(data));
-        }
-
-        return Enumerable.Range(0, data.Length / 8)
-            .Select(index => Convert.ToByte(data.Substring(index * 8, 8), 2))
-            .ToArray();
-    }
-
-    public JsonObject ToJsonObject() => new()
-    {
-        [TypeIdentifierResolver.TypeIdentifierJsonPropertyName] = "MyCompany-Cryptography-BinaryEncoder"
-    };
-
-    public string Serialize(bool indented = false) =>
-        ToJsonObject().ToJsonString(IJsonSerializable.GetIndentOptions(indented));
-
-    public static IEncoder Deserialize(string json)
-    {
-        JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(typeof(BinaryEncoder), json);
-
-        if (jsonNode["TypeIdentifier"]?.GetValue<string>() != "MyCompany-Cryptography-BinaryEncoder")
-        {
-            throw new DeserializeException(typeof(BinaryEncoder), json);
-        }
-
-        return new BinaryEncoder();
-    }
-}
+RsaKeyPair pair = 2048u.CreateRsaKeyPair(RsaKeyPairEncoding.Pem);
+string json = pair.Serialize(indented: true);
+RsaKeyPair restored = RsaKeyPair.Deserialize(json);
 ```
 
-### Custom IHasher
+## RsaEncryptor
 
-This example is intentionally simple. It demonstrates the API shape, but it is not a secure cryptographic hash.
+`RsaEncryptor` is the serializable object wrapper for RSA encryption/decryption.
+
+### Properties
+
+- `KeyPair` (required)
+- `Padding`
+- `Encoder`
+
+Defaults:
+
+- `Padding = RsaPadding.OaepSha256`
+- `Encoder = Base64Encoder.DefaultInstance`
+
+### Methods
+
+- `Encrypt(...)`
+- `EncryptEncoded(...)`
+- `Decrypt(...)`
+- `DecryptEncoded(...)`
+- serialization methods
+
+### Example
 
 ```csharp
-using InsaneIO.Insane.Cryptography;
-using InsaneIO.Insane.Cryptography.Abstractions;
-using InsaneIO.Insane.Cryptography.Attributes;
-using InsaneIO.Insane.Exceptions;
-using InsaneIO.Insane.Serialization;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json.Nodes;
+RsaKeyPair pair = 2048u.CreateRsaKeyPair(RsaKeyPairEncoding.Pem);
 
-[TypeIdentifier("MyCompany-Cryptography-XorHasher")]
-public sealed class XorHasher : IHasher
+var encryptor = new RsaEncryptor
 {
-    public IEncoder Encoder { get; init; } = Base64Encoder.DefaultInstance;
+    KeyPair = pair,
+    Padding = RsaPadding.OaepSha256,
+    Encoder = Base64Encoder.DefaultInstance
+};
 
-    public byte[] Compute(byte[] data)
-    {
-        byte accumulator = 0;
-
-        foreach (byte value in data)
-        {
-            accumulator ^= value;
-        }
-
-        return [accumulator];
-    }
-
-    public byte[] Compute(string data)
-    {
-        return Compute(Encoding.UTF8.GetBytes(data));
-    }
-
-    public string ComputeEncoded(byte[] data)
-    {
-        return Encoder.Encode(Compute(data));
-    }
-
-    public string ComputeEncoded(string data)
-    {
-        return Encoder.Encode(Compute(data));
-    }
-
-    public bool Verify(byte[] data, byte[] expected)
-    {
-        return CryptographicOperations.FixedTimeEquals(Compute(data), expected);
-    }
-
-    public bool Verify(string data, byte[] expected)
-    {
-        return CryptographicOperations.FixedTimeEquals(Compute(data), expected);
-    }
-
-    public bool VerifyEncoded(byte[] data, string expected)
-    {
-        return ComputeEncoded(data) == expected;
-    }
-
-    public bool VerifyEncoded(string data, string expected)
-    {
-        return ComputeEncoded(data) == expected;
-    }
-
-    public JsonObject ToJsonObject() => new()
-    {
-        [TypeIdentifierResolver.TypeIdentifierJsonPropertyName] = "MyCompany-Cryptography-XorHasher",
-        [nameof(Encoder)] = Encoder.ToJsonObject()
-    };
-
-    public string Serialize(bool indented = false) =>
-        ToJsonObject().ToJsonString(IJsonSerializable.GetIndentOptions(indented));
-
-    public static IHasher Deserialize(string json)
-    {
-        JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(typeof(XorHasher), json);
-
-        if (jsonNode["TypeIdentifier"]?.GetValue<string>() != "MyCompany-Cryptography-XorHasher")
-        {
-            throw new DeserializeException(typeof(XorHasher), json);
-        }
-
-        return new XorHasher
-        {
-            Encoder = IEncoder.DeserializeDynamic(jsonNode[nameof(Encoder)]!.ToJsonString())
-        };
-    }
-}
+string cipher = encryptor.EncryptEncoded("payload");
+string clear = encryptor.DecryptEncoded(cipher).ToStringUtf8();
 ```
 
-### Custom IEncryptor
-
-This example uses XOR with a configurable key. It is intentionally simple for demonstration only and is not secure encryption.
-
-```csharp
-using InsaneIO.Insane.Cryptography;
-using InsaneIO.Insane.Cryptography.Abstractions;
-using InsaneIO.Insane.Cryptography.Attributes;
-using InsaneIO.Insane.Exceptions;
-using InsaneIO.Insane.Serialization;
-using System.Text;
-using System.Text.Json.Nodes;
-
-[TypeIdentifier("MyCompany-Cryptography-XorEncryptor")]
-public sealed class XorEncryptor : IEncryptor
-{
-    public byte[] KeyBytes { get; init; } = Encoding.UTF8.GetBytes("demo-key");
-    public string KeyString { get => Encoding.UTF8.GetString(KeyBytes); init => KeyBytes = Encoding.UTF8.GetBytes(value); }
-    public IEncoder Encoder { get; init; } = Base64Encoder.DefaultInstance;
-
-    public byte[] Encrypt(byte[] data)
-    {
-        byte[] output = new byte[data.Length];
-
-        for (int index = 0; index < data.Length; index++)
-        {
-            output[index] = (byte)(data[index] ^ KeyBytes[index % KeyBytes.Length]);
-        }
-
-        return output;
-    }
-
-    public byte[] Encrypt(string data)
-    {
-        return Encrypt(Encoding.UTF8.GetBytes(data));
-    }
-
-    public string EncryptEncoded(byte[] data)
-    {
-        return Encoder.Encode(Encrypt(data));
-    }
-
-    public string EncryptEncoded(string data)
-    {
-        return Encoder.Encode(Encrypt(data));
-    }
-
-    public byte[] Decrypt(byte[] data)
-    {
-        return Encrypt(data);
-    }
-
-    public byte[] DecryptEncoded(string data)
-    {
-        return Decrypt(Encoder.Decode(data));
-    }
-
-    public JsonObject ToJsonObject() => new()
-    {
-        [TypeIdentifierResolver.TypeIdentifierJsonPropertyName] = "MyCompany-Cryptography-XorEncryptor",
-        [nameof(KeyBytes)] = Encoder.Encode(KeyBytes),
-        [nameof(Encoder)] = Encoder.ToJsonObject()
-    };
-
-    public string Serialize(bool indented = false) =>
-        ToJsonObject().ToJsonString(IJsonSerializable.GetIndentOptions(indented));
-
-    public static IEncryptor Deserialize(string json)
-    {
-        JsonNode jsonNode = JsonNode.Parse(json) ?? throw new DeserializeException(typeof(XorEncryptor), json);
-
-        if (jsonNode["TypeIdentifier"]?.GetValue<string>() != "MyCompany-Cryptography-XorEncryptor")
-        {
-            throw new DeserializeException(typeof(XorEncryptor), json);
-        }
-
-        IEncoder encoder = IEncoder.DeserializeDynamic(jsonNode[nameof(Encoder)]!.ToJsonString());
-
-        return new XorEncryptor
-        {
-            Encoder = encoder,
-            KeyBytes = encoder.Decode(jsonNode[nameof(KeyBytes)]!.GetValue<string>())
-        };
-    }
-}
-```
-
-Once the assembly containing your custom implementation is loaded, `IEncoder.DeserializeDynamic`, `IHasher.DeserializeDynamic`, and `IEncryptor.DeserializeDynamic` can resolve it through `TypeIdentifier`.
-
-## EncodingExtensions
-
-Class: `InsaneIO.Insane.Extensions.EncodingExtensions`.
-
-These extensions convert text to bytes and bytes to text using `System.Text.Encoding`.
-
-## HexEncodingExtensions
-
-Class: `InsaneIO.Insane.Cryptography.Extensions.HexEncodingExtensions`.
-
-### DecodeFromHex
-
-Behavior:
-
-- Throws `ArgumentNullException` if the input is `null`
-- Throws `ArgumentException` if the length is odd
-- Throws if the input contains invalid hexadecimal characters
-
-## Base64EncodingExtensions
-
-Class: `InsaneIO.Insane.Cryptography.Extensions.Base64EncodingExtensions`.
-
-Supports regular Base64, URL-safe Base64, filename-safe Base64, URL-encoded Base64, and line-broken Base64 values.
+## Encoding helpers
 
 ## Base32EncodingExtensions
 
-Class: `InsaneIO.Insane.Cryptography.Extensions.Base32EncodingExtensions`.
+### Method family
 
-Behavior:
+- `EncodeToBase32(this byte[] data, bool removePadding = false, bool toLower = false)`
+- `EncodeToBase32(this string data, bool removePadding = false, bool toLower = false)`
+- `DecodeFromBase32(this string data)`
 
-- Accepts padded and unpadded Base32 values
-- Validates padding position and legal padding lengths
-- Rejects impossible Base32 lengths
-- Throws `ArgumentException` for invalid input
+### Behavior
 
-## Encoders
+- accepts uppercase and lowercase input
+- trims outer whitespace
+- accepts padded and unpadded values
+- rejects impossible lengths and illegal padding patterns
 
-All encoders implement `IEncoder` and `IEncoderJsonSerializable`.
-
-Serialized encoder payloads include:
-
-- `TypeIdentifier`
-- encoder-specific settings
-
-### HexEncoder
-
-Properties:
-
-| Property | Type | Default | Description |
-| --- | --- | --- | --- |
-| `ToUpper` | `bool` | `false` | Controls whether `Encode` uses uppercase hex digits |
-| `DefaultInstance` | `HexEncoder` | Static instance | Reusable default instance |
-
-### Base32Encoder
-
-| Property | Type | Default | Description |
-| --- | --- | --- | --- |
-| `ToLower` | `bool` | `false` | Produces lowercase output during encoding |
-| `RemovePadding` | `bool` | `false` | Omits `=` padding when `true` |
-| `DefaultInstance` | `Base32Encoder` | Static instance | Reusable default instance |
-
-### Base64Encoder
-
-| Property | Type | Default | Description |
-| --- | --- | --- | --- |
-| `LineBreaksLength` | `uint` | `0` | Line length for regular Base64 output |
-| `RemovePadding` | `bool` | `false` | Removes `=` when `EncodingType` is `Base64` |
-| `EncodingType` | `Base64Encoding` | `Base64` | Selected Base64 flavor |
-| `DefaultInstance` | `Base64Encoder` | Static instance | Reusable default instance |
-
-## AesExtensions and AesCbcEncryptor
-
-- String keys are converted to UTF-8 bytes
-- Keys shorter than 8 bytes are rejected
-- Keys are normalized by hashing them with SHA-512 and taking the first 32 bytes
-- The encrypted result format is `ciphertext || iv`
-- `DecryptAesCbc` validates that ciphertext length is at least 16 bytes so the IV exists
-
-`AesCbcEncryptor` serializes:
-
-- `TypeIdentifier`
-- `Key`
-- `Padding`
-- `Encoder`
-
-## RsaExtensions, RsaKeyPair, and RsaEncryptor
-
-`RsaExtensions` provides:
-
-- RSA key pair generation
-- Public/private key validation
-- Key encoding detection
-- RSA encryption and decryption
-- Encoded RSA encryption and decryption
-- Async `IJSRuntime` helpers for Blazor WebAssembly
-
-`RsaKeyPair.Deserialize(string json)` validates:
-
-- the root `TypeIdentifier`
-- that at least one key is present
-
-`RsaEncryptor` serializes:
-
-- `TypeIdentifier`
-- `KeyPair`
-- `Padding`
-- `Encoder`
-
-## HashExtensions, HmacExtensions, ScryptExtensions, Argon2Extensions
-
-These classes live in `InsaneIO.Insane.Cryptography.Extensions`.
-
-Security notes:
-
-- `VerifyHash` and all `VerifyHashFromEncoded` overloads use constant-time comparison
-- `VerifyHmac` and all `VerifyHmacFromEncoded` overloads use constant-time comparison
-- `VerifyScrypt` and `VerifyScryptFromEncoded` use constant-time comparison
-- `VerifyArgon2` and `VerifyArgon2FromEncoded` use constant-time comparison
-
-## Hashers
-
-### ShaHasher
-
-Wraps plain hash computation with configurable `HashAlgorithm` and `Encoder`.
-
-### HmacHasher
-
-Wraps HMAC computation with configurable `HashAlgorithm`, `Encoder`, and secret key.
-
-Serialized JSON contains the encoded HMAC key.
-
-### ScryptHasher
-
-Wraps Scrypt derivation with configurable salt and cost parameters.
-
-### Argon2Hasher
-
-Wraps Argon2 derivation with configurable salt, iterations, memory, parallelism, output size, variant, and encoder.
-
-## TotpManager
-
-Represents a serializable TOTP configuration.
-
-It is the main TOTP entry point and now covers the convenience scenarios that older helper wrappers used to provide.
-
-Useful members:
-
-- `FromSecret(byte[] secret, string label, string issuer, ...)`
-- `FromBase32Secret(string base32EncodedSecret, string label, string issuer, ...)`
-- `FromEncodedSecret(string encodedSecret, IEncoder secretDecoder, string label, string issuer, ...)`
-- `ToOtpUri()` and `GenerateTotpUri()`
-- `ComputeCode()` and `ComputeCode(DateTimeOffset now)`
-- `ComputeTotpCode()` and `ComputeTotpCode(DateTimeOffset now)`
-- `VerifyCode(...)` and `VerifyTotpCode(...)`
-- `ComputeRemainingSeconds()` / `ComputeTotpRemainingSeconds()`
-
-`Deserialize(string json)` validates:
-
-- the root `TypeIdentifier`
-- that enum values are defined
-
-## Dynamic Deserialization
-
-The interfaces provide dynamic deserialization helpers:
+### Example
 
 ```csharp
-IEncoder encoder = IEncoder.DeserializeDynamic(jsonEncoder);
-IHasher hasher = IHasher.DeserializeDynamic(jsonHasher);
-IEncryptor encryptor = IEncryptor.DeserializeDynamic(jsonEncryptor);
+string padded = "hello".ToByteArrayUtf8().EncodeToBase32();
+string compact = "hello".ToByteArrayUtf8().EncodeToBase32(removePadding: true, toLower: true);
+byte[] back = compact.DecodeFromBase32();
 ```
 
-Behavior:
+## Base64EncodingExtensions
 
-- `DeserializeDynamic` resolves the concrete type through `TypeIdentifier`
-- the type resolution uses an internal static cache so loaded assemblies are not rescanned on every deserialization call
-- concrete `Deserialize(string json)` methods validate that the payload type matches the expected type
-- if the payload belongs to another type or required fields are missing, they throw `DeserializeException`
+### Method family
 
-## Sensitive Fields
+- `InsertLineBreaks(...)`
+- `EncodeToBase64(...)`
+- `EncodeToUrlSafeBase64(...)`
+- `EncodeToFilenameSafeBase64(...)`
+- `EncodeToUrlEncodedBase64(...)`
+- `DecodeFromBase64(...)`
+- `EncodeBase64ToUrlSafeBase64(...)`
+- `EncodeBase64ToFilenameSafeBase64(...)`
+- `EncodeBase64ToUrlEncodedBase64(...)`
 
-Treat JSON containing these fields as sensitive:
+### Behavior
 
-- `AesCbcEncryptor.Key`
-- `HmacHasher.Key`
-- `RsaKeyPair.PrivateKey`
-- `RsaEncryptor.KeyPair.PrivateKey`
+- regular string overloads use UTF-8
+- decoder accepts standard, URL-safe, filename-safe, URL-encoded, and line-broken Base64
+- `InsertLineBreaks(...)` uses `Environment.NewLine`
 
-## Notes
+## HexEncodingExtensions
 
-- AES-CBC encrypts but does not authenticate. Use a MAC or an authenticated encryption mode if one is added later.
-- The AES output format in this library is `ciphertext || iv`, not `iv || ciphertext`.
-- String keys are converted to UTF-8. If you need exact binary values, use `KeyBytes`, `SaltBytes`, or `byte[]` overloads.
-- MD5 and SHA-1 are present for compatibility, but should not be used for new security-sensitive work.
-- For modern RSA use cases, prefer OAEP padding. `Pkcs1` is mainly for compatibility.
-- `IJSRuntime` methods use `eval` to register temporary functions. Review CSP restrictions if the code runs in browsers with strict policies.
+### Method family
+
+- `EncodeToHex(...)`
+- `DecodeFromHex(...)`
+
+### Behavior
+
+- string inputs use UTF-8
+- odd lengths are rejected
+- invalid characters are rejected with `ArgumentException`
+
+## Hash and HMAC helpers
+
+## HashExtensions
+
+### Method family
+
+- `ComputeHash(...)`
+- `ComputeHashEncoded(...)`
+- `VerifyHash(...)`
+- `VerifyHashFromEncoded(...)`
+
+### Supported algorithms
+
+- `Md5`
+- `Sha1`
+- `Sha256`
+- `Sha384`
+- `Sha512`
+
+### Comparison behavior
+
+Verification uses fixed-time comparison helpers.
+
+## HmacExtensions
+
+### Method family
+
+- `ComputeHmac(...)`
+- `ComputeHmacEncoded(...)`
+- `VerifyHmac(...)`
+- `VerifyHmacFromEncoded(...)`
+
+### Overloads
+
+Supports both byte and string forms for:
+
+- data
+- key
+
+String values are converted using UTF-8.
+
+## Key derivation helpers
+
+## ScryptExtensions
+
+### Method family
+
+- `ComputeScrypt(...)`
+- `ComputeScryptEncoded(...)`
+- `VerifyScrypt(...)`
+- `VerifyScryptFromEncoded(...)`
+
+### Parameters
+
+- `iterations`
+- `blockSize`
+- `parallelism`
+- `derivedKeyLength`
+
+Defaults come from `Constants`.
+
+## Argon2Extensions
+
+### Method family
+
+- `ComputeArgon2(...)`
+- `ComputeArgon2Encoded(...)`
+- `VerifyArgon2(...)`
+- `VerifyArgon2FromEncoded(...)`
+
+### Parameters
+
+- `iterations`
+- `memorySizeKiB`
+- `parallelism`
+- `variant`
+- `derivedKeyLength`
+
+## Symmetric encryption helpers
+
+## AesExtensions
+
+### Public constants
+
+- `MaxIvLength = 16`
+- `MaxKeyLength = 32`
+
+### Method family
+
+- `EncryptAesCbc(...)`
+- `DecryptAesCbc(...)`
+- `EncryptAesCbcEncoded(...)`
+- `DecryptAesCbcFromEncoded(...)`
+- async `IJSRuntime` versions of the same operations
+
+### Validation
+
+- keys shorter than 8 bytes are rejected
+- ciphertext shorter than the IV length is rejected
+
+### IJSRuntime support
+
+The public async overloads register temporary JavaScript functions and clean them up in `finally`.
+
+These helpers are useful in Blazor WebAssembly scenarios when you want to route the same high-level library API through JS interop.
+
+## Asymmetric encryption helpers
+
+## RsaExtensions
+
+### Method family
+
+- `CreateRsaKeyPair(...)`
+- `GetRsaKeyEncoding(...)`
+- `ValidateRsaPublicKey(...)`
+- `ValidateRsaPrivateKey(...)`
+- `EncryptRsa(...)`
+- `EncryptRsaEncoded(...)`
+- `DecryptRsa(...)`
+- `DecryptRsaFromEncoded(...)`
+- async `IJSRuntime` variants for generation, validation, detection, encryption, and decryption
+
+### Supported key formats
+
+- BER
+- PEM
+- XML
+
+### Key generation example
+
+```csharp
+RsaKeyPair pair = 4096u.CreateRsaKeyPair(RsaKeyPairEncoding.Pem);
+```
+
+### Direct encryption example
+
+```csharp
+RsaKeyPair pair = 2048u.CreateRsaKeyPair(RsaKeyPairEncoding.Pem);
+
+string encrypted = "payload".EncryptRsaEncoded(
+    pair.PublicKey!,
+    Base64Encoder.DefaultInstance,
+    RsaPadding.OaepSha256);
+
+string decrypted = encrypted.DecryptRsaFromEncoded(
+    pair.PrivateKey!,
+    Base64Encoder.DefaultInstance,
+    RsaPadding.OaepSha256).ToStringUtf8();
+```
+
+### IJSRuntime example
+
+```csharp
+string encrypted = await jsRuntime.EncryptRsaEncodedAsync(
+    "payload",
+    publicKey,
+    Base64Encoder.DefaultInstance,
+    RsaPadding.OaepSha256);
+
+string decrypted = (await jsRuntime.DecryptRsaFromEncodedAsync(
+    encrypted,
+    privateKey,
+    Base64Encoder.DefaultInstance,
+    RsaPadding.OaepSha256)).ToStringUtf8();
+```
+
+## Random helpers
+
+## RandomExtensions
+
+### Method family
+
+- `NextValue(this int value)`
+- `NextValue(this int min, int max)`
+- `NextBytes(this uint size)`
+
+### Usage guidance
+
+- use `NextBytes(...)` when you need raw random material
+- use `NextValue(min, max)` for bounded integer generation, noting that it rejects `min >= max`
+
+## Shared utility pieces relevant to crypto callers
+
+### TypeIdentifierAttribute
+
+Decorates concrete serializable types with a stable identifier string.
+
+### TypeIdentifierResolver
+
+Used by concrete serializers and dynamic contract deserializers to:
+
+- write `TypeIdentifier`
+- validate a payload against a concrete type
+- resolve a concrete implementation by identifier
+
+### EncodingExtensions
+
+Common UTF-8 helpers used by almost every cryptography string overload:
+
+- `ToByteArrayUtf8`
+- `ToStringUtf8`
+
+### ByteArrayExtensions
+
+Basic guards:
+
+- `ThrowIfNull`
+- `ThrowIfEmpty`
+- `ThrowIfNullOrEmpty`
+
+## Recommended usage patterns
+
+### Prefer extension methods when
+
+- you only need one operation
+- you do not need serialization
+- you want explicit algorithm choice inline
+
+### Prefer concrete classes when
+
+- you want reusable config
+- you want object serialization
+- you want dependency injection
+- you want dynamic deserialization from stored JSON
+
+### Prefer dynamic deserialization when
+
+- the JSON may represent multiple concrete implementations
+- you are reading persisted configuration from storage
+- you are building plug-in or user-selectable cryptography flows
+
+## Security notes
+
+- AES-CBC encrypts but does not authenticate
+- MD5 and SHA-1 remain available mainly for compatibility
+- prefer OAEP padding for RSA unless compatibility forces PKCS#1 v1.5
+- treat serialized keys, salts, and HMAC keys as sensitive material

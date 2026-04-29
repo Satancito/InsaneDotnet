@@ -1,5 +1,4 @@
-﻿using InsaneIO.Insane.Cryptography;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +14,7 @@ using FluentAssertions;
 using FluentAssertions.Equivalency;
 using InsaneIO.Insane.Exceptions;
 using System.Text.RegularExpressions;
+using InsaneIO.Insane.Cryptography.Enums;
 
 namespace InsaneIO.Insane.Tests
 {
@@ -291,6 +291,55 @@ BMqYEI4qTxhH714mB3L5viUCAwEAAQ==";
         public void Deserialize_ShouldRejectMismatchedSerializedType()
         {
             string json = HexEncoder.DefaultInstance.Serialize();
+
+            FluentActions.Invoking(() => Base64Encoder.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void Deserialize_ShouldRejectMissingTypeIdentifier()
+        {
+            string json = TestJsonMutations.RemoveTypeIdentifier(Base64Encoder.DefaultInstance.Serialize());
+
+            FluentActions.Invoking(() => Base64Encoder.Deserialize(json)).Should().Throw<DeserializeException>();
+            FluentActions.Invoking(() => IEncoder.DeserializeDynamic(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void Deserialize_ShouldRejectMissingLineBreaksLength()
+        {
+            string json = TestJsonMutations.RemoveProperty(Base64Encoder.DefaultInstance.Serialize(), nameof(Base64Encoder.LineBreaksLength));
+
+            FluentActions.Invoking(() => Base64Encoder.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void Deserialize_ShouldRejectMissingRemovePadding()
+        {
+            string json = TestJsonMutations.RemoveProperty(Base64Encoder.DefaultInstance.Serialize(), nameof(Base64Encoder.RemovePadding));
+
+            FluentActions.Invoking(() => Base64Encoder.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void Deserialize_ShouldRejectMissingEncodingType()
+        {
+            string json = TestJsonMutations.RemoveProperty(Base64Encoder.DefaultInstance.Serialize(), nameof(Base64Encoder.EncodingType));
+
+            FluentActions.Invoking(() => Base64Encoder.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void Deserialize_ShouldRejectInvalidLineBreaksLengthType()
+        {
+            string json = TestJsonMutations.ReplaceProperty(Base64Encoder.DefaultInstance.Serialize(), nameof(Base64Encoder.LineBreaksLength), JsonValue.Create("not-a-number"));
+
+            FluentActions.Invoking(() => Base64Encoder.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void Deserialize_ShouldRejectInvalidEncodingType()
+        {
+            string json = TestJsonMutations.ReplaceProperty(Base64Encoder.DefaultInstance.Serialize(), nameof(Base64Encoder.EncodingType), JsonValue.Create(999));
 
             FluentActions.Invoking(() => Base64Encoder.Deserialize(json)).Should().Throw<DeserializeException>();
         }

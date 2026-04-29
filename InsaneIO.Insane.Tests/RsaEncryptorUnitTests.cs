@@ -1,5 +1,5 @@
 using FluentAssertions;
-using InsaneIO.Insane.Cryptography;
+using InsaneIO.Insane.Cryptography.Enums;
 using InsaneIO.Insane.Exceptions;
 using InsaneIO.Insane.Extensions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -95,10 +95,9 @@ namespace InsaneIO.Insane.Tests
         public void RsaKeyPairDeserialize_ShouldRejectMissingTypeIdentifier()
         {
             RsaKeyPair keyPair = 2048u.CreateRsaKeyPair(RsaKeyPairEncoding.Pem);
-            JsonNode jsonNode = JsonNode.Parse(keyPair.Serialize())!;
-            jsonNode["TypeIdentifier"] = null;
+            string json = TestJsonMutations.RemoveTypeIdentifier(keyPair.Serialize());
 
-            FluentActions.Invoking(() => RsaKeyPair.Deserialize(jsonNode.ToJsonString())).Should().Throw<DeserializeException>();
+            FluentActions.Invoking(() => RsaKeyPair.Deserialize(json)).Should().Throw<DeserializeException>();
         }
 
         [TestMethod]
@@ -112,6 +111,84 @@ namespace InsaneIO.Insane.Tests
             }.Serialize();
 
             FluentActions.Invoking(() => RsaEncryptor.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void RsaEncryptorDeserialize_ShouldRejectMissingTypeIdentifier()
+        {
+            var encryptor = new RsaEncryptor
+            {
+                KeyPair = 2048u.CreateRsaKeyPair(),
+                Padding = RsaPadding.OaepSha256,
+                Encoder = Base64Encoder.DefaultInstance
+            };
+            string json = TestJsonMutations.RemoveTypeIdentifier(encryptor.Serialize());
+
+            FluentActions.Invoking(() => RsaEncryptor.Deserialize(json)).Should().Throw<DeserializeException>();
+            FluentActions.Invoking(() => IEncryptor.DeserializeDynamic(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void RsaEncryptorDeserialize_ShouldRejectMissingKeyPair()
+        {
+            var encryptor = new RsaEncryptor { KeyPair = 2048u.CreateRsaKeyPair(), Padding = RsaPadding.OaepSha256, Encoder = Base64Encoder.DefaultInstance };
+            string json = TestJsonMutations.RemoveProperty(encryptor.Serialize(), nameof(RsaEncryptor.KeyPair));
+
+            FluentActions.Invoking(() => RsaEncryptor.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void RsaEncryptorDeserialize_ShouldRejectMissingEncoder()
+        {
+            var encryptor = new RsaEncryptor { KeyPair = 2048u.CreateRsaKeyPair(), Padding = RsaPadding.OaepSha256, Encoder = Base64Encoder.DefaultInstance };
+            string json = TestJsonMutations.RemoveProperty(encryptor.Serialize(), nameof(RsaEncryptor.Encoder));
+
+            FluentActions.Invoking(() => RsaEncryptor.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void RsaEncryptorDeserialize_ShouldRejectMissingPadding()
+        {
+            var encryptor = new RsaEncryptor { KeyPair = 2048u.CreateRsaKeyPair(), Padding = RsaPadding.OaepSha256, Encoder = Base64Encoder.DefaultInstance };
+            string json = TestJsonMutations.RemoveProperty(encryptor.Serialize(), nameof(RsaEncryptor.Padding));
+
+            FluentActions.Invoking(() => RsaEncryptor.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void RsaEncryptorDeserialize_ShouldRejectInvalidPadding()
+        {
+            var encryptor = new RsaEncryptor { KeyPair = 2048u.CreateRsaKeyPair(), Padding = RsaPadding.OaepSha256, Encoder = Base64Encoder.DefaultInstance };
+            string json = TestJsonMutations.ReplaceProperty(encryptor.Serialize(), nameof(RsaEncryptor.Padding), JsonValue.Create(999));
+
+            FluentActions.Invoking(() => RsaEncryptor.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void RsaEncryptorDeserialize_ShouldRejectInvalidEncoder()
+        {
+            var encryptor = new RsaEncryptor { KeyPair = 2048u.CreateRsaKeyPair(), Padding = RsaPadding.OaepSha256, Encoder = Base64Encoder.DefaultInstance };
+            string json = TestJsonMutations.ReplaceProperty(encryptor.Serialize(), nameof(RsaEncryptor.Encoder), JsonValue.Create("invalid"));
+
+            FluentActions.Invoking(() => RsaEncryptor.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void RsaKeyPairDeserialize_ShouldRejectMissingPublicKey()
+        {
+            RsaKeyPair keyPair = 2048u.CreateRsaKeyPair(RsaKeyPairEncoding.Pem);
+            string json = TestJsonMutations.RemoveProperty(keyPair.Serialize(), nameof(RsaKeyPair.PublicKey));
+
+            FluentActions.Invoking(() => RsaKeyPair.Deserialize(json)).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void RsaKeyPairDeserialize_ShouldRejectMissingPrivateKey()
+        {
+            RsaKeyPair keyPair = 2048u.CreateRsaKeyPair(RsaKeyPairEncoding.Pem);
+            string json = TestJsonMutations.RemoveProperty(keyPair.Serialize(), nameof(RsaKeyPair.PrivateKey));
+
+            FluentActions.Invoking(() => RsaKeyPair.Deserialize(json)).Should().Throw<DeserializeException>();
         }
     }
 }

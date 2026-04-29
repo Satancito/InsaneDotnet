@@ -1,4 +1,5 @@
 using FluentAssertions;
+using InsaneIO.Insane.Cryptography.Enums;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace InsaneIO.Insane.Tests
@@ -29,6 +30,7 @@ namespace InsaneIO.Insane.Tests
             Data.ComputeArgon2(SaltBytes, iterations, memorySizeKiB, parallelism, variant, derivedKeyLength).Should().Equal(expected);
             DataBytes.ComputeArgon2(Salt, iterations, memorySizeKiB, parallelism, variant, derivedKeyLength).Should().Equal(expected);
             Data.VerifyArgon2(Salt, expected, iterations, memorySizeKiB, parallelism, variant, derivedKeyLength).Should().BeTrue();
+            "other payload".VerifyArgon2(Salt, expected, iterations, memorySizeKiB, parallelism, variant, derivedKeyLength).Should().BeFalse();
             Data.VerifyArgon2FromEncoded(Salt, encoded, Base64Encoder.DefaultInstance, iterations, memorySizeKiB, parallelism, variant, derivedKeyLength).Should().BeTrue();
             DataBytes.VerifyArgon2FromEncoded(SaltBytes, encoded, Base64Encoder.DefaultInstance, iterations, memorySizeKiB, parallelism, variant, derivedKeyLength).Should().BeTrue();
             Data.VerifyArgon2FromEncoded(Salt, encoded + "A", Base64Encoder.DefaultInstance, iterations, memorySizeKiB, parallelism, variant, derivedKeyLength).Should().BeFalse();
