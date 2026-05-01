@@ -4,13 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace InsaneIO.Insane.Cryptography.Enums
+namespace InsaneIO.Insane.Cryptography.Enums;
+
+public enum AesCbcPadding
 {
-    public enum AesCbcPadding
-    {
-        None,
-        Zeros,
-        Pkcs7,
-        AnsiX923
-    }
+    None,
+    Zeros,
+    Pkcs7,
+    AnsiX923
 }

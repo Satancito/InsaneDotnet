@@ -2,6 +2,47 @@
 
 ---
 
+## 10.5.1
+
+This patch release tightens a few cryptography internals, keeps the public RSA documentation aligned with the current implementation, and rolls the package metadata forward to the next patch version.
+
+### Cryptography
+
+Changes:
+
+- Moved RSA key-format regular expressions in `RsaExtensions` to source-generated regex factories.
+- Kept the current key-format coverage for:
+  - BER / Base64 body
+  - PEM
+  - XML
+- Included the latest cryptography helper cleanup already present in the current codebase.
+
+Impact:
+
+- RSA key detection keeps the same public behavior while reducing regex initialization overhead.
+- The package remains aligned with current .NET regex guidance for hot-path validation helpers.
+
+### Documentation
+
+Changes:
+
+- Refreshed the RSA sections in the main cryptography manual.
+- Refreshed the namespace-based cryptography extensions reference to reflect the current key-detection implementation.
+
+### Package Metadata
+
+Changes:
+
+- Bumped `InsaneIO.Insane` to `10.5.1`.
+- Updated package version snippets in `README.md`.
+- Refreshed package release notes for the patch release.
+
+### Validation
+
+- Re-ran the full test suite after the patch updates.
+
+---
+
 ## 10.5.0
 
 This release expands the public documentation set into a namespace-based manual, refreshes the package metadata for the current cryptography and security surface, and documents the latest TOTP and serialization behavior in detail.

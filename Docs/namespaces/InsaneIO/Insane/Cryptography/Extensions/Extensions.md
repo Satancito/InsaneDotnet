@@ -247,6 +247,8 @@ string clear = cipher.DecryptAesCbcFromEncoded(
 - PEM
 - XML
 
+The current implementation validates these formats with source-generated regular expressions before attempting the RSA import step. That keeps key detection predictable while reducing repeated regex setup work in repeated validation flows.
+
 ### Key generation
 
 ```csharp

@@ -934,6 +934,8 @@ These helpers are useful in Blazor WebAssembly scenarios when you want to route 
 - PEM
 - XML
 
+The detection path validates these formats with source-generated regular expressions before importing the key material. Public behavior stays the same, but the implementation avoids rebuilding the regex objects at runtime for repeated RSA key checks.
+
 ### Key generation example
 
 ```csharp

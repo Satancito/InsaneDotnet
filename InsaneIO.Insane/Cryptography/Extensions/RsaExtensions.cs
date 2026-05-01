@@ -1,3 +1,4 @@
+using InsaneIO.Insane.Cryptography.Abstractions;
 using InsaneIO.Insane.Cryptography.Enums;
 using Microsoft.JSInterop;
 using System.Security.Cryptography;
@@ -7,17 +8,28 @@ using System.Xml.Linq;
 namespace InsaneIO.Insane.Cryptography.Extensions;
 
 
-public static class RsaExtensions
+public static partial class RsaExtensions
 {
-    private static readonly Regex Base64ValueRegex = new Regex(Constants.Base64ValueRegexPattern, RegexOptions.None, TimeSpan.FromSeconds(2));
-    private static readonly Regex RsaXmlPublicKeyRegex = new Regex(Constants.RsaXmlPublicKeyRegexPattern, RegexOptions.None, TimeSpan.FromSeconds(2));
-    private static readonly Regex RsaXmlPrivateKeyRegex = new Regex(Constants.RsaXmlPrivateKeyRegexPattern, RegexOptions.None, TimeSpan.FromSeconds(2));
+    [GeneratedRegex(Constants.Base64ValueRegexPattern, RegexOptions.None, matchTimeoutMilliseconds: 2000)]
+    private static partial Regex Base64ValueRegex();
 
-    private static readonly Regex RsaPemPublicKeyRegex = new Regex(Constants.RsaPemPublicKeyRegexPattern, RegexOptions.None, TimeSpan.FromSeconds(2));
-    private static readonly Regex RsaPemPrivateKeyRegex = new Regex(Constants.RsaPemPrivateKeyRegexPattern, RegexOptions.None, TimeSpan.FromSeconds(2));
+    [GeneratedRegex(Constants.RsaXmlPublicKeyRegexPattern, RegexOptions.None, matchTimeoutMilliseconds: 2000)]
+    private static partial Regex RsaXmlPublicKeyRegex();
 
-    private static readonly Regex RsaPemRsaPublicKeyRegex = new Regex(Constants.RsaPemRsaPublicKeyRegexPattern, RegexOptions.None, TimeSpan.FromSeconds(2));
-    private static readonly Regex RsaPemRsaPrivateKeyRegex = new Regex(Constants.RsaPemRsaPrivateKeyRegexPattern, RegexOptions.None, TimeSpan.FromSeconds(2));
+    [GeneratedRegex(Constants.RsaXmlPrivateKeyRegexPattern, RegexOptions.None, matchTimeoutMilliseconds: 2000)]
+    private static partial Regex RsaXmlPrivateKeyRegex();
+
+    [GeneratedRegex(Constants.RsaPemPublicKeyRegexPattern, RegexOptions.None, matchTimeoutMilliseconds: 2000)]
+    private static partial Regex RsaPemPublicKeyRegex();
+
+    [GeneratedRegex(Constants.RsaPemPrivateKeyRegexPattern, RegexOptions.None, matchTimeoutMilliseconds: 2000)]
+    private static partial Regex RsaPemPrivateKeyRegex();
+
+    [GeneratedRegex(Constants.RsaPemRsaPublicKeyRegexPattern, RegexOptions.None, matchTimeoutMilliseconds: 2000)]
+    private static partial Regex RsaPemRsaPublicKeyRegex();
+
+    [GeneratedRegex(Constants.RsaPemRsaPrivateKeyRegexPattern, RegexOptions.None, matchTimeoutMilliseconds: 2000)]
+    private static partial Regex RsaPemRsaPrivateKeyRegex();
 
     public static RsaKeyPair CreateRsaKeyPair(this uint keySize, RsaKeyPairEncoding encoding = RsaKeyPairEncoding.Ber)
     {
@@ -61,7 +73,7 @@ public static class RsaExtensions
             }
 
             key = key.Trim();
-            if (Base64ValueRegex.IsMatch(key))
+            if (Base64ValueRegex().IsMatch(key))
             {
                 try
                 {
@@ -85,13 +97,13 @@ public static class RsaExtensions
 
             if (key.StartsWith(Constants.RsaXmlKeyMainTag))
             {
-                if (RsaXmlPrivateKeyRegex.IsMatch(key))
+                if (RsaXmlPrivateKeyRegex().IsMatch(key))
                 {
                     rsa.FromXmlString(key);
                     return (RsaKeyEncoding.XmlPrivate, rsa);
                 }
 
-                if (RsaXmlPublicKeyRegex.IsMatch(key))
+                if (RsaXmlPublicKeyRegex().IsMatch(key))
                 {
                     rsa.FromXmlString(key);
                     return (RsaKeyEncoding.XmlPublic, rsa);
@@ -102,14 +114,14 @@ public static class RsaExtensions
             if (key.StartsWith(Constants.RsaPemKeyInitialTextHeader))
             {
                 StringBuilder pemsb = new(key);
-                if (RsaPemPublicKeyRegex.IsMatch(key))
+                if (RsaPemPublicKeyRegex().IsMatch(key))
                 {
                     pemsb.Replace(Constants.RsaPemPublicKeyHeader, string.Empty).Replace(Constants.RsaPemPublicKeyFooter, string.Empty);
                     rsa.ImportSubjectPublicKeyInfo(pemsb.ToString().Trim().DecodeFromBase64(), out int bytesRead1);
                     return (RsaKeyEncoding.PemPublic, rsa);
                 }
 
-                if (RsaPemPrivateKeyRegex.IsMatch(key))
+                if (RsaPemPrivateKeyRegex().IsMatch(key))
                 {
                     pemsb.Replace(Constants.RsaPemPrivateKeyHeader, string.Empty).Replace(Constants.RsaPemPrivateKeyFooter, string.Empty);
                     rsa.ImportPkcs8PrivateKey(pemsb.ToString().Trim().DecodeFromBase64(), out int bytesRead1);

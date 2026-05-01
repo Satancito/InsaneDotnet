@@ -28,10 +28,9 @@
 
 		<UserSecretsId>dcead069-ffae-4de4-be81-720ec8ff2ac7</UserSecretsId>
 		<PackageReleaseNotes><![CDATA[
-- Expanded public documentation with namespace-based reference pages
-- Added detailed documentation for cryptography, security, and serialization APIs
-- Documented TOTP time-window tolerance and current security behavior
-- Updated README links and package metadata for the new documentation index
+- Improved RSA key-format detection internals with source-generated regular expressions
+- Refreshed cryptography documentation for current RSA behavior
+- Updated package version metadata for 10.5.1
 ]]></PackageReleaseNotes>
 		<PackageIcon>Icon.png</PackageIcon>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
@@ -40,10 +39,10 @@
 		<IsPrerelease>false</IsPrerelease>
 		<PrereleaseName>Preview</PrereleaseName>
 		<BuildSuffix>Build</BuildSuffix>
-		<BuildNumber>1210</BuildNumber>
-		<VersionPrefix>10.5.0</VersionPrefix>
+		<BuildNumber>1214</BuildNumber>
+		<VersionPrefix>10.5.1</VersionPrefix>
 		<VersionSuffix></VersionSuffix>
-		<Version>10.5.0</Version>
+		<Version>10.5.1</Version>
 		<LangVersion>latest</LangVersion>
 		<EnablePreviewFeatures>false</EnablePreviewFeatures>
 		<!--<UseBlazorWebAssembly>true</UseBlazorWebAssembly>-->
