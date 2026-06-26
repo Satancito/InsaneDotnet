@@ -32,11 +32,7 @@ public class HmacHasher : IHasher
                 throw new DeserializeException(typeof(HmacHasher), json);
             }
 
-            HashAlgorithm hashAlgorithm = (HashAlgorithm)(jsonNode[nameof(HashAlgorithm)]?.GetValue<int>() ?? throw new DeserializeException(typeof(HmacHasher), json));
-            if (!Enum.IsDefined(hashAlgorithm))
-            {
-                throw new DeserializeException(typeof(HmacHasher), json);
-            }
+            HashAlgorithm hashAlgorithm = EnumSerialization.ReadEnumValue<HashAlgorithm>(jsonNode, nameof(HashAlgorithm), typeof(HmacHasher), json);
 
             IEncoder encoder = IEncoder.DeserializeDynamic(jsonNode[nameof(Encoder)]?.ToJsonString() ?? throw new DeserializeException(typeof(HmacHasher), json));
 
@@ -68,7 +64,7 @@ public class HmacHasher : IHasher
         {
             [TypeIdentifierResolver.TypeIdentifierJsonPropertyName] = TypeIdentifierResolver.GetTypeIdentifier(typeof(HmacHasher)),
             [nameof(Key)] = Encoder.Encode(Key),
-            [nameof(HashAlgorithm)] = HashAlgorithm.NumberValue<int>(),
+            [nameof(HashAlgorithm)] = HashAlgorithm.ToString(),
             [nameof(Encoder)] = Encoder.ToJsonObject(),
         };
     }

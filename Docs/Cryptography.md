@@ -110,13 +110,15 @@ Dynamic deserialization:
 
 There is no fallback to:
 
-- `AssemblyName`
+- legacy runtime type metadata
 - CLR type names
 - class names
 
 ### Practical implication
 
 If the JSON is missing `TypeIdentifier`, uses the wrong one, or points to a type that does not implement the requested interface, deserialization fails with `DeserializeException`.
+
+Enum-valued configuration properties are serialized by enum name for readability. Current deserializers accept both enum-name payloads and legacy numeric values from older serialized data.
 
 ## Public contracts
 
@@ -357,11 +359,11 @@ JSON shape:
   "TypeIdentifier": "Insane-Cryptography-Base64Encoder",
   "LineBreaksLength": 0,
   "RemovePadding": false,
-  "EncodingType": 0
+  "EncodingType": "Base64"
 }
 ```
 
-`EncodingType` is serialized numerically.
+`EncodingType` is serialized by enum name, while deserialization remains compatible with older numeric payloads.
 
 `Deserialize(...)` rejects:
 
@@ -466,7 +468,7 @@ JSON shape:
 ```json
 {
   "TypeIdentifier": "Insane-Cryptography-ShaHasher",
-  "HashAlgorithm": 2,
+  "HashAlgorithm": "Sha256",
   "Encoder": { ... }
 }
 ```

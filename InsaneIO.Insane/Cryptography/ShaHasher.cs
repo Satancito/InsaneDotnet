@@ -27,11 +27,7 @@ public class ShaHasher : IHasher
                 throw new DeserializeException(typeof(ShaHasher), json);
             }
 
-            HashAlgorithm hashAlgorithm = (HashAlgorithm)(jsonNode[nameof(HashAlgorithm)]?.GetValue<int>() ?? throw new DeserializeException(typeof(ShaHasher), json));
-            if (!Enum.IsDefined(hashAlgorithm))
-            {
-                throw new DeserializeException(typeof(ShaHasher), json);
-            }
+            HashAlgorithm hashAlgorithm = EnumSerialization.ReadEnumValue<HashAlgorithm>(jsonNode, nameof(HashAlgorithm), typeof(ShaHasher), json);
 
             return new ShaHasher
             {
@@ -59,7 +55,7 @@ public class ShaHasher : IHasher
         return new JsonObject()
         {
             [TypeIdentifierResolver.TypeIdentifierJsonPropertyName] = TypeIdentifierResolver.GetTypeIdentifier(typeof(ShaHasher)),
-            [nameof(HashAlgorithm)] = HashAlgorithm.NumberValue<int>(),
+            [nameof(HashAlgorithm)] = HashAlgorithm.ToString(),
             [nameof(Encoder)] = Encoder.ToJsonObject()
         };
     }

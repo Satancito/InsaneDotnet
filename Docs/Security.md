@@ -212,8 +212,8 @@ JSON shape:
   "Secret": "MFXGG33EMV2W4YLMONQWG2A=",
   "Label": "user@example.com",
   "Issuer": "Insane IO",
-  "CodeLength": 6,
-  "HashAlgorithm": 1,
+  "CodeLength": "SixDigits",
+  "HashAlgorithm": "Sha1",
   "TimePeriodInSeconds": 30
 }
 ```
@@ -221,8 +221,9 @@ JSON shape:
 Important serialization rules:
 
 - `Secret` is written as Base32
-- `CodeLength` is numeric
-- `HashAlgorithm` is numeric
+- `CodeLength` is serialized by enum name
+- `HashAlgorithm` is serialized by enum name
+- deserialization accepts both enum names and legacy numeric values
 - `Serialize` defaults to `indented: true`
 
 ### Deserialization validation

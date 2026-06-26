@@ -4,7 +4,7 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<TargetFramework>net10.0</TargetFramework>
-		<PackageId>$(AssemblyName)</PackageId>
+		<PackageId>InsaneIO.Insane</PackageId>
 		<Title>InsaneIO.Insane</Title>
 		<Company>InsaneIO</Company>
 		<Description>Insane for .NET 10</Description>
@@ -28,9 +28,9 @@
 
 		<UserSecretsId>dcead069-ffae-4de4-be81-720ec8ff2ac7</UserSecretsId>
 		<PackageReleaseNotes><![CDATA[
-- Improved RSA key-format detection internals with source-generated regular expressions
-- Refreshed cryptography documentation for current RSA behavior
-- Updated package version metadata for 10.5.1
+- Enum-valued cryptography and TOTP settings now serialize by name
+- Deserialization now accepts both enum names and legacy numeric values
+- Updated documentation and tests for the new JSON enum behavior
 ]]></PackageReleaseNotes>
 		<PackageIcon>Icon.png</PackageIcon>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
@@ -39,10 +39,10 @@
 		<IsPrerelease>false</IsPrerelease>
 		<PrereleaseName>Preview</PrereleaseName>
 		<BuildSuffix>Build</BuildSuffix>
-		<BuildNumber>1214</BuildNumber>
-		<VersionPrefix>10.5.1</VersionPrefix>
+		<BuildNumber>1217</BuildNumber>
+		<VersionPrefix>10.5.2</VersionPrefix>
 		<VersionSuffix></VersionSuffix>
-		<Version>10.5.1</Version>
+		<Version>10.5.2</Version>
 		<LangVersion>latest</LangVersion>
 		<EnablePreviewFeatures>false</EnablePreviewFeatures>
 		<!--<UseBlazorWebAssembly>true</UseBlazorWebAssembly>-->

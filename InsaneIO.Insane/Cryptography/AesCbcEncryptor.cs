@@ -35,11 +35,7 @@ public class AesCbcEncryptor : IEncryptor
             }
 
             IEncoder encoder = IEncoder.DeserializeDynamic(jsonNode[nameof(Encoder)]?.ToJsonString() ?? throw new DeserializeException(typeof(AesCbcEncryptor), json));
-            AesCbcPadding padding = (AesCbcPadding)(jsonNode[nameof(Padding)]?.GetValue<int>() ?? throw new DeserializeException(typeof(AesCbcEncryptor), json));
-            if (!Enum.IsDefined(padding))
-            {
-                throw new DeserializeException(typeof(AesCbcEncryptor), json);
-            }
+            AesCbcPadding padding = EnumSerialization.ReadEnumValue<AesCbcPadding>(jsonNode, nameof(Padding), typeof(AesCbcEncryptor), json);
 
             return new AesCbcEncryptor
             {
@@ -69,7 +65,7 @@ public class AesCbcEncryptor : IEncryptor
         {
             [TypeIdentifierResolver.TypeIdentifierJsonPropertyName] = TypeIdentifierResolver.GetTypeIdentifier(typeof(AesCbcEncryptor)),
             [nameof(Key)] = Encoder.Encode(Key),
-            [nameof(Padding)] = Padding.NumberValue<int>(),
+            [nameof(Padding)] = Padding.ToString(),
             [nameof(Encoder)] = Encoder.ToJsonObject(),
         };
     }

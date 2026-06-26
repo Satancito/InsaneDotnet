@@ -59,8 +59,8 @@ public class TotpManager : IJsonSerializable
             [nameof(Secret)] = Base32Encoder.DefaultInstance.Encode(Secret),
             [nameof(Label)] = Label,
             [nameof(Issuer)] = Issuer,
-            [nameof(CodeLength)] = CodeLength.NumberValue<int>(),
-            [nameof(HashAlgorithm)] = HashAlgorithm.NumberValue<int>(),
+            [nameof(CodeLength)] = CodeLength.ToString(),
+            [nameof(HashAlgorithm)] = HashAlgorithm.ToString(),
             [nameof(TimePeriodInSeconds)] = TimePeriodInSeconds,
         };
     }
@@ -75,13 +75,8 @@ public class TotpManager : IJsonSerializable
                 throw new DeserializeException(typeof(TotpManager), json);
             }
 
-            TwoFactorCodeLength codeLength = (TwoFactorCodeLength)(jsonNode[nameof(CodeLength)]?.GetValue<int>() ?? throw new DeserializeException(typeof(TotpManager), json));
-            HashAlgorithm hashAlgorithm = (HashAlgorithm)(jsonNode[nameof(HashAlgorithm)]?.GetValue<int>() ?? throw new DeserializeException(typeof(TotpManager), json));
-
-            if (!Enum.IsDefined(codeLength) || !Enum.IsDefined(hashAlgorithm))
-            {
-                throw new DeserializeException(typeof(TotpManager), json);
-            }
+            TwoFactorCodeLength codeLength = EnumSerialization.ReadEnumValue<TwoFactorCodeLength>(jsonNode, nameof(CodeLength), typeof(TotpManager), json);
+            HashAlgorithm hashAlgorithm = EnumSerialization.ReadEnumValue<HashAlgorithm>(jsonNode, nameof(HashAlgorithm), typeof(TotpManager), json);
 
             return new TotpManager
             {

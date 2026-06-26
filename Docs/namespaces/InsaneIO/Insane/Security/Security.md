@@ -47,7 +47,8 @@ Important serialization behavior:
 
 - the JSON includes `TypeIdentifier`
 - `Secret` is serialized in Base32
-- `CodeLength` and `HashAlgorithm` are serialized as numeric enum values
+- `CodeLength` and `HashAlgorithm` are serialized as enum names
+- deserialization accepts both enum names and legacy numeric values
 - `Serialize` defaults to `indented: true`
 
 ### JSON shape
@@ -58,8 +59,8 @@ Important serialization behavior:
   "Secret": "MFXGG33EMV2W4YLMONQWG2A=",
   "Label": "user@example.com",
   "Issuer": "Insane IO",
-  "CodeLength": 6,
-  "HashAlgorithm": 1,
+  "CodeLength": "SixDigits",
+  "HashAlgorithm": "Sha1",
   "TimePeriodInSeconds": 30
 }
 ```

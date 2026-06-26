@@ -37,11 +37,7 @@ public class Argon2Hasher : IHasher
             }
 
             IEncoder encoder = IEncoder.DeserializeDynamic(jsonNode[nameof(Encoder)]?.ToJsonString() ?? throw new DeserializeException(typeof(Argon2Hasher), json));
-            Argon2Variant variant = (Argon2Variant)(jsonNode[nameof(Argon2Variant)]?.GetValue<int>() ?? throw new DeserializeException(typeof(Argon2Hasher), json));
-            if (!Enum.IsDefined(variant))
-            {
-                throw new DeserializeException(typeof(Argon2Hasher), json);
-            }
+            Argon2Variant variant = EnumSerialization.ReadEnumValue<Argon2Variant>(jsonNode, nameof(Argon2Variant), typeof(Argon2Hasher), json);
 
             return new Argon2Hasher
             {
@@ -78,7 +74,7 @@ public class Argon2Hasher : IHasher
             [nameof(Iterations)] = Iterations,
             [nameof(MemorySizeKiB)] = MemorySizeKiB,
             [nameof(DegreeOfParallelism)] = DegreeOfParallelism,
-            [nameof(Argon2Variant)] = Argon2Variant.NumberValue<int>(),
+            [nameof(Argon2Variant)] = Argon2Variant.ToString(),
             [nameof(DerivedKeyLength)] = DerivedKeyLength,
             [nameof(Encoder)] = Encoder.ToJsonObject(),
         };

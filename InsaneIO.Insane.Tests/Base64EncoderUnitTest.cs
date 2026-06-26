@@ -288,6 +288,24 @@ BMqYEI4qTxhH714mB3L5viUCAwEAAQ==";
         }
 
         [TestMethod]
+        public void Serialize_ShouldWriteEncodingTypeAsString()
+        {
+            Base64Encoder encoder = new() { EncodingType = Base64Encoding.UrlSafeBase64 };
+
+            encoder.ToJsonObject()[nameof(Base64Encoder.EncodingType)]!.GetValue<string>().Should().Be(nameof(Base64Encoding.UrlSafeBase64));
+        }
+
+        [TestMethod]
+        public void Deserialize_ShouldAcceptLegacyNumericEncodingType()
+        {
+            Base64Encoder encoder = new() { EncodingType = Base64Encoding.UrlSafeBase64, LineBreaksLength = 0, RemovePadding = false };
+            string json = TestJsonMutations.ReplaceProperty(encoder.Serialize(), nameof(Base64Encoder.EncodingType), JsonValue.Create((int)Base64Encoding.UrlSafeBase64));
+
+            Base64Encoder.Deserialize(json).Should().BeOfType<Base64Encoder>()
+                .Which.EncodingType.Should().Be(Base64Encoding.UrlSafeBase64);
+        }
+
+        [TestMethod]
         public void Deserialize_ShouldRejectMismatchedSerializedType()
         {
             string json = HexEncoder.DefaultInstance.Serialize();

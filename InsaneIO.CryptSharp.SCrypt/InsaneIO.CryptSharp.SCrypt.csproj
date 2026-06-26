@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<Nullable>disable</Nullable>
 		<TargetFramework>net10.0</TargetFramework>
-		<PackageId>$(AssemblyName)</PackageId>
+		<PackageId>InsaneIO.CryptSharp.SCrypt</PackageId>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<BuildNumber>1</BuildNumber>
 	</PropertyGroup>

@@ -40,6 +40,24 @@ namespace InsaneIO.Insane.Tests
         }
 
         [TestMethod]
+        public void ShaHasherSerialize_ShouldWriteHashAlgorithmAsString()
+        {
+            var hasher = new ShaHasher { HashAlgorithm = InsaneHashAlgorithm.Sha256, Encoder = HexEncoder.DefaultInstance };
+
+            hasher.ToJsonObject()[nameof(ShaHasher.HashAlgorithm)]!.GetValue<string>().Should().Be(nameof(InsaneHashAlgorithm.Sha256));
+        }
+
+        [TestMethod]
+        public void ShaHasherDeserialize_ShouldAcceptLegacyNumericHashAlgorithm()
+        {
+            var hasher = new ShaHasher { HashAlgorithm = InsaneHashAlgorithm.Sha256, Encoder = HexEncoder.DefaultInstance };
+            string json = TestJsonMutations.ReplaceProperty(hasher.Serialize(), nameof(ShaHasher.HashAlgorithm), JsonValue.Create((int)InsaneHashAlgorithm.Sha256));
+
+            ShaHasher.Deserialize(json).Should().BeOfType<ShaHasher>()
+                .Which.HashAlgorithm.Should().Be(InsaneHashAlgorithm.Sha256);
+        }
+
+        [TestMethod]
         public void HmacHasher_ShouldComputeVerifyAndSerialize()
         {
             var hasher = new HmacHasher
@@ -116,6 +134,24 @@ namespace InsaneIO.Insane.Tests
             hasher.VerifyEncoded(OtherData, encoded).Should().BeFalse();
             TestSerializationAssertions.AssertJsonEquals(hasher.ToJsonObject(), deserialized.ToJsonObject());
             TestSerializationAssertions.AssertJsonEquals(hasher.ToJsonObject(), IHasher.DeserializeDynamic(hasher.Serialize()).ToJsonObject());
+        }
+
+        [TestMethod]
+        public void Argon2HasherSerialize_ShouldWriteVariantAsString()
+        {
+            var hasher = new Argon2Hasher { SaltString = Salt, Encoder = Base64Encoder.DefaultInstance, Argon2Variant = Argon2Variant.Argon2id };
+
+            hasher.ToJsonObject()[nameof(Argon2Hasher.Argon2Variant)]!.GetValue<string>().Should().Be(nameof(Argon2Variant.Argon2id));
+        }
+
+        [TestMethod]
+        public void Argon2HasherDeserialize_ShouldAcceptLegacyNumericVariant()
+        {
+            var hasher = new Argon2Hasher { SaltString = Salt, Iterations = 1, MemorySizeKiB = 1024, DegreeOfParallelism = 1, DerivedKeyLength = 16, Argon2Variant = Argon2Variant.Argon2id, Encoder = Base64Encoder.DefaultInstance };
+            string json = TestJsonMutations.ReplaceProperty(hasher.Serialize(), nameof(Argon2Hasher.Argon2Variant), JsonValue.Create((int)Argon2Variant.Argon2id));
+
+            Argon2Hasher.Deserialize(json).Should().BeOfType<Argon2Hasher>()
+                .Which.Argon2Variant.Should().Be(Argon2Variant.Argon2id);
         }
 
         [TestMethod]

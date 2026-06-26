@@ -31,11 +31,7 @@ public class RsaEncryptor : IEncryptor
             IEncoder encoder = IEncoder.DeserializeDynamic(jsonNode[nameof(Encoder)]?.ToJsonString() ?? throw new DeserializeException(typeof(RsaEncryptor), json));
             RsaKeyPair keyPair = RsaKeyPair.Deserialize(jsonNode[nameof(KeyPair)]?.ToJsonString() ?? throw new DeserializeException(typeof(RsaEncryptor), json))
                 ?? throw new DeserializeException(typeof(RsaEncryptor), json);
-            RsaPadding padding = (RsaPadding)(jsonNode[nameof(Padding)]?.GetValue<int>() ?? throw new DeserializeException(typeof(RsaEncryptor), json));
-            if (!Enum.IsDefined(padding))
-            {
-                throw new DeserializeException(typeof(RsaEncryptor), json);
-            }
+            RsaPadding padding = EnumSerialization.ReadEnumValue<RsaPadding>(jsonNode, nameof(Padding), typeof(RsaEncryptor), json);
 
             return new RsaEncryptor
             {
@@ -65,7 +61,7 @@ public class RsaEncryptor : IEncryptor
         {
             [TypeIdentifierResolver.TypeIdentifierJsonPropertyName] = TypeIdentifierResolver.GetTypeIdentifier(typeof(RsaEncryptor)),
             [nameof(KeyPair)] = KeyPair.ToJsonObject(),
-            [nameof(Padding)] = Padding.NumberValue<int>(),
+            [nameof(Padding)] = Padding.ToString(),
             [nameof(Encoder)] = Encoder.ToJsonObject(),
         };
     }

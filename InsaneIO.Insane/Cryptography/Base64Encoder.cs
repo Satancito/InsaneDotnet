@@ -59,7 +59,7 @@ public class Base64Encoder : IEncoder, IDefaultInstance<Base64Encoder>
             [TypeIdentifierResolver.TypeIdentifierJsonPropertyName] = TypeIdentifierResolver.GetTypeIdentifier(typeof(Base64Encoder)),
             [nameof(LineBreaksLength)] = LineBreaksLength,
             [nameof(RemovePadding)] = RemovePadding,
-            [nameof(EncodingType)] = EncodingType.NumberValue<int>()
+            [nameof(EncodingType)] = EncodingType.ToString()
         };
     }
 
@@ -78,11 +78,7 @@ public class Base64Encoder : IEncoder, IDefaultInstance<Base64Encoder>
                 throw new DeserializeException(typeof(Base64Encoder), json);
             }
 
-            Base64Encoding encodingType = (Base64Encoding)(jsonNode[nameof(EncodingType)]?.GetValue<int>() ?? throw new DeserializeException(typeof(Base64Encoder), json));
-            if (!Enum.IsDefined(encodingType))
-            {
-                throw new DeserializeException(typeof(Base64Encoder), json);
-            }
+            Base64Encoding encodingType = EnumSerialization.ReadEnumValue<Base64Encoding>(jsonNode, nameof(EncodingType), typeof(Base64Encoder), json);
 
             return new Base64Encoder
             {

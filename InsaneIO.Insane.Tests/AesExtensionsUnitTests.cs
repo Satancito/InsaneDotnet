@@ -92,6 +92,24 @@ namespace InsaneIO.Insane.Tests
         }
 
         [TestMethod]
+        public void AesCbcEncryptorSerialize_ShouldWritePaddingAsString()
+        {
+            var encryptor = new AesCbcEncryptor { KeyString = Key, Encoder = HexEncoder.DefaultInstance, Padding = AesCbcPadding.Pkcs7 };
+
+            encryptor.ToJsonObject()[nameof(AesCbcEncryptor.Padding)]!.GetValue<string>().Should().Be(nameof(AesCbcPadding.Pkcs7));
+        }
+
+        [TestMethod]
+        public void AesCbcEncryptorDeserialize_ShouldAcceptLegacyNumericPadding()
+        {
+            var encryptor = new AesCbcEncryptor { KeyString = Key, Encoder = HexEncoder.DefaultInstance, Padding = AesCbcPadding.Pkcs7 };
+            string json = TestJsonMutations.ReplaceProperty(encryptor.Serialize(), nameof(AesCbcEncryptor.Padding), JsonValue.Create((int)AesCbcPadding.Pkcs7));
+
+            AesCbcEncryptor.Deserialize(json).Should().BeOfType<AesCbcEncryptor>()
+                .Which.Padding.Should().Be(AesCbcPadding.Pkcs7);
+        }
+
+        [TestMethod]
         public void AesCbcEncryptorDeserialize_ShouldRejectMismatchedSerializedType()
         {
             string json = new RsaEncryptor

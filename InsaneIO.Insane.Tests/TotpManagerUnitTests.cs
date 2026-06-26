@@ -64,6 +64,8 @@ namespace InsaneIO.Insane.Tests
 
             json["TypeIdentifier"]!.GetValue<string>().Should().Be("Insane-Security-TotpManager");
             json[nameof(TotpManager.Secret)]!.GetValue<string>().Should().Be(Base32Encoder.DefaultInstance.Encode(manager.Secret));
+            json[nameof(TotpManager.CodeLength)]!.GetValue<string>().Should().Be(nameof(TwoFactorCodeLength.SixDigits));
+            json[nameof(TotpManager.HashAlgorithm)]!.GetValue<string>().Should().Be(nameof(Cryptography.Enums.HashAlgorithm.Sha1));
         }
 
         [TestMethod]
@@ -153,6 +155,19 @@ namespace InsaneIO.Insane.Tests
             json[nameof(TotpManager.HashAlgorithm)] = 999;
 
             FluentActions.Invoking(() => TotpManager.Deserialize(json.ToJsonString())).Should().Throw<DeserializeException>();
+        }
+
+        [TestMethod]
+        public void Deserialize_ShouldAcceptLegacyNumericEnums()
+        {
+            JsonObject json = manager.ToJsonObject();
+            json[nameof(TotpManager.CodeLength)] = (int)TwoFactorCodeLength.SixDigits;
+            json[nameof(TotpManager.HashAlgorithm)] = (int)Cryptography.Enums.HashAlgorithm.Sha1;
+
+            TotpManager deserialized = TotpManager.Deserialize(json.ToJsonString());
+
+            deserialized.CodeLength.Should().Be(TwoFactorCodeLength.SixDigits);
+            deserialized.HashAlgorithm.Should().Be(Cryptography.Enums.HashAlgorithm.Sha1);
         }
 
         [TestMethod]

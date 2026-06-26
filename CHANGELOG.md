@@ -2,6 +2,49 @@
 
 ---
 
+## 10.5.2
+
+This patch release improves the public JSON contract for enum-backed configuration values across the cryptography and TOTP APIs while preserving backward compatibility with previously serialized payloads.
+
+### Serialization
+
+Changes:
+
+- Added a shared enum serialization helper for public deserializers.
+- Enum-valued configuration properties now serialize by enum name instead of raw numeric values.
+- Deserialization now accepts both:
+  - enum names such as `Sha256`, `Pkcs7`, and `SixDigits`
+  - legacy numeric values from earlier payloads
+
+Affected areas:
+
+- `Base64Encoder`
+- `ShaHasher`
+- `HmacHasher`
+- `Argon2Hasher`
+- `AesCbcEncryptor`
+- `RsaEncryptor`
+- `TotpManager`
+
+Impact:
+
+- Serialized JSON is easier to read and safer to exchange between platforms.
+- Existing stored payloads using numeric enum values continue to deserialize correctly.
+
+### Documentation
+
+Changes:
+
+- Updated the main cryptography manual with the current enum JSON behavior.
+- Updated the main security manual and namespace security reference to reflect named enum serialization and legacy numeric compatibility.
+
+### Validation
+
+- Added coverage for named-enum serialization and legacy numeric deserialization.
+- Re-ran the full test suite after the serializer updates.
+
+---
+
 ## 10.5.1
 
 This patch release tightens a few cryptography internals, keeps the public RSA documentation aligned with the current implementation, and rolls the package metadata forward to the next patch version.
@@ -141,7 +184,7 @@ Impact:
 
 Changes:
 
-- Removed the remaining dependency on `AssemblyName` for crypto serialization and deserialization.
+- Removed the remaining dependency on legacy runtime type metadata for crypto serialization and deserialization.
 - Dynamic and concrete deserialization now rely only on `TypeIdentifier`.
 
 Impact:
@@ -294,14 +337,14 @@ This version adds new API capabilities without breaking existing behavior. The m
 New capabilities:
 
 - Added `IEncoder.DeserializeDynamic(string json)`.
-- Allows deserializing a concrete encoder by reading `AssemblyName` from JSON.
+- Allows deserializing a concrete encoder by reading legacy runtime type metadata from JSON.
 - Supports dynamic reconstruction of implementations such as `HexEncoder`, `Base32Encoder`, and `Base64Encoder` without the consumer knowing the concrete type in advance.
 
 Related improvements:
 
-- `HexEncoder.Deserialize(string json)` now validates that the payload `AssemblyName` really corresponds to `HexEncoder`.
-- `Base32Encoder.Deserialize(string json)` now validates that the payload `AssemblyName` really corresponds to `Base32Encoder`.
-- `Base64Encoder.Deserialize(string json)` now validates that the payload `AssemblyName` really corresponds to `Base64Encoder`.
+- `HexEncoder.Deserialize(string json)` now validates that the payload type metadata really corresponds to `HexEncoder`.
+- `Base32Encoder.Deserialize(string json)` now validates that the payload type metadata really corresponds to `Base32Encoder`.
+- `Base64Encoder.Deserialize(string json)` now validates that the payload type metadata really corresponds to `Base64Encoder`.
 - Encoder deserializers now fail early with `DeserializeException` if the JSON belongs to another type or is missing required fields.
 
 ### IHasher
@@ -309,12 +352,12 @@ Related improvements:
 New capabilities:
 
 - Added `IHasher.DeserializeDynamic(string json)`.
-- Allows deserializing concrete hashers by reading `AssemblyName` from JSON.
+- Allows deserializing concrete hashers by reading legacy runtime type metadata from JSON.
 - Supports dynamic reconstruction of `ShaHasher`, `HmacHasher`, `ScryptHasher`, and `Argon2Hasher`.
 
 Related improvements:
 
-- Concrete `Deserialize(string json)` methods validate the payload `AssemblyName` before restoring the object.
+- Concrete `Deserialize(string json)` methods validate the payload type metadata before restoring the object.
 - `ShaHasher.Deserialize`, `HmacHasher.Deserialize`, `ScryptHasher.Deserialize`, and `Argon2Hasher.Deserialize` use stricter validation and fail with `DeserializeException` when the content does not match the expected type.
 - `Argon2Hasher.Deserialize` removes the redundant reconstruction of `Encoder`.
 - `HashExtensions` verification helpers now use constant-time comparison for:
@@ -336,7 +379,7 @@ Impact:
 New capabilities:
 
 - Added `IEncryptor.DeserializeDynamic(string json)`.
-- Allows deserializing concrete encryptors by reading `AssemblyName` from JSON.
+- Allows deserializing concrete encryptors by reading legacy runtime type metadata from JSON.
 - Supports dynamic reconstruction of `AesCbcEncryptor` and `RsaEncryptor`.
 
 Related improvements:
@@ -353,7 +396,7 @@ Related improvements:
 Improvements:
 
 - `RsaKeyPair.Deserialize(string json)` no longer depends on `JsonSerializer.Deserialize<RsaKeyPair>(json)` without validation.
-- It now validates `AssemblyName`.
+- It now validates the payload type metadata.
 - It now rejects payloads that contain neither `PublicKey` nor `PrivateKey`.
 - It fails early with `DeserializeException` when the content does not represent a valid `RsaKeyPair`.
 

@@ -69,6 +69,24 @@ namespace InsaneIO.Insane.Tests
         }
 
         [TestMethod]
+        public void RsaEncryptorSerialize_ShouldWritePaddingAsString()
+        {
+            var encryptor = new RsaEncryptor { KeyPair = 2048u.CreateRsaKeyPair(), Padding = RsaPadding.OaepSha256, Encoder = Base64Encoder.DefaultInstance };
+
+            encryptor.ToJsonObject()[nameof(RsaEncryptor.Padding)]!.GetValue<string>().Should().Be(nameof(RsaPadding.OaepSha256));
+        }
+
+        [TestMethod]
+        public void RsaEncryptorDeserialize_ShouldAcceptLegacyNumericPadding()
+        {
+            var encryptor = new RsaEncryptor { KeyPair = 2048u.CreateRsaKeyPair(), Padding = RsaPadding.OaepSha256, Encoder = Base64Encoder.DefaultInstance };
+            string json = TestJsonMutations.ReplaceProperty(encryptor.Serialize(), nameof(RsaEncryptor.Padding), JsonValue.Create((int)RsaPadding.OaepSha256));
+
+            RsaEncryptor.Deserialize(json).Should().BeOfType<RsaEncryptor>()
+                .Which.Padding.Should().Be(RsaPadding.OaepSha256);
+        }
+
+        [TestMethod]
         public void RsaKeyPair_ShouldSerializeDeserialize()
         {
             RsaKeyPair keyPair = 2048u.CreateRsaKeyPair(RsaKeyPairEncoding.Pem);
