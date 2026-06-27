@@ -34,14 +34,14 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <IncludeContentInPack>true</IncludeContentInPack>
-    <Version>10.5.3</Version>
+    <Version>10.5.4</Version>
     <LangVersion>latest</LangVersion>
     <EnablePreviewFeatures>false</EnablePreviewFeatures>
     <!--<UseBlazorWebAssembly>true</UseBlazorWebAssembly>-->
     <!--<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>-->
     <!--<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>-->
-    <NumVer>10.5.3</NumVer>
-    <BuildNumber>1782555699</BuildNumber>
+    <NumVer>10.5.4</NumVer>
+    <BuildNumber>1782558505</BuildNumber>
     <PrereleaseName>
     </PrereleaseName>
     <BuildName>

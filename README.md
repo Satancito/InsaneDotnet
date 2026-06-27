@@ -12,17 +12,17 @@ Insane library Compatible with .NET 10 and upwards.
 
 **Package Reference**   
 ```
-<PackageReference Include="InsaneIO.Insane" Version="10.5.2" />
+<PackageReference Include="InsaneIO.Insane" Version="10.5.4" />
 ```
 
 **Dotnet CLI**   
 ```
-dotnet add package InsaneIO.Insane --version 10.5.2
+dotnet add package InsaneIO.Insane --version 10.5.4
 ```
 
 **Package Manager**   
 ```
-Install-Package InsaneIO.Insane -Version 10.5.2
+Install-Package InsaneIO.Insane -Version 10.5.4
 ```
 <hr />
 

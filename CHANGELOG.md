@@ -2,6 +2,39 @@
 
 ---
 
+## 10.5.4
+
+This patch release refreshes the repository release tooling to the latest `DotnetSemVerPs` workflow and aligns consumer-facing version references with the prepared package version.
+
+### Release Tooling
+
+Changes:
+
+- Updated the `Tools/DotnetSemVerPs` submodule to the current upstream revision.
+- Refreshed the root `Agent-DotnetSemVerPs.MD` instructions to match the new release flow.
+- Adopted the two-step release workflow based on:
+  - `Version.ps1 -PrepareRelease`
+  - `Version.ps1 -PublishRelease`
+
+Impact:
+
+- Releases can now prepare the computed package version first, update version-dependent repository files, and then publish the release commit and tag from the prepared state.
+- The repository release instructions stay aligned with the actual SemVer automation bundled in the tool submodule.
+
+### Package Metadata
+
+Changes:
+
+- Bumped `InsaneIO.Insane` to `10.5.4`.
+- Updated package version snippets in `README.md`.
+
+### Validation
+
+- Re-ran the Release build successfully.
+- Re-ran the full Release test suite successfully.
+
+---
+
 ## 10.5.2
 
 This patch release improves the public JSON contract for enum-backed configuration values across the cryptography and TOTP APIs while preserving backward compatibility with previously serialized payloads.
