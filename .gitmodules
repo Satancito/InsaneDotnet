@@ -1,3 +1,6 @@
 [submodule "Tools/DevSecretManagerPs"]
-	path = Tools/DevSecretManagerPs
+	path = Tools/DevSecretsManagerPs
 	url = https://github.com/Satancito/DevSecretsManagerPs.git
+[submodule "Tools/DotnetNugetPublisher"]
+	path = Tools/DotnetNugetPublisher
+	url = https://github.com/Satancito/DotnetNuGetPublisherPs.git
