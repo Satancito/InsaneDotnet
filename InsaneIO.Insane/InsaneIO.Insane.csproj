@@ -25,20 +25,19 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     <UserSecretsId>dcead069-ffae-4de4-be81-720ec8ff2ac7</UserSecretsId>
-    <PackageReleaseNotes>- ci: update DotnetSemVer prepared release metadata workflow
-- ci: gate NuGet publish with project flag</PackageReleaseNotes>
+    <PackageReleaseNotes><![CDATA[- update DotnetSemVer release tooling]]></PackageReleaseNotes>
     <PackageIcon>Icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <IncludeContentInPack>true</IncludeContentInPack>
-    <Version>10.5.5</Version>
+    <Version>10.5.6</Version>
     <LangVersion>latest</LangVersion>
     <EnablePreviewFeatures>false</EnablePreviewFeatures>
     <!--<UseBlazorWebAssembly>true</UseBlazorWebAssembly>-->
     <!--<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>-->
     <!--<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>-->
-    <NumVer>10.5.5</NumVer>
-    <BuildNumber>1782561425</BuildNumber>
+    <NumVer>10.5.6</NumVer>
+    <BuildNumber>1782562398</BuildNumber>
     <PrereleaseName>
     </PrereleaseName>
     <BuildName>

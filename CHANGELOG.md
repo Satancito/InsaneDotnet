@@ -2,6 +2,39 @@
 
 ---
 
+## 10.5.6
+
+This patch release refreshes the repository SemVer tooling to the latest upstream script revision and aligns the release metadata behavior with the updated `DotnetSemVerPs` conventions.
+
+### Release Tooling
+
+Changes:
+
+- Updated the `Tools/DotnetSemVerPs` submodule to the latest upstream revision.
+- Refreshed the root `Agent-DotnetSemVerPs.MD` instructions to track the current release workflow.
+- The release guidance now reflects that prepared `PackageReleaseNotes` are generated from Conventional Commit descriptions as bullet lines wrapped in CDATA.
+
+Impact:
+
+- Repository release metadata stays aligned with the current SemVer tooling behavior.
+- Future prepared releases in this repository follow the latest note-generation conventions without manual interpretation drift.
+
+### Package Metadata
+
+Changes:
+
+- Prepared release metadata now records:
+  - `Version` `10.5.6`
+  - `NuGetPush` `False`
+  - CDATA-wrapped release notes generated from the latest Conventional Commit description
+
+### Validation
+
+- Re-ran the Release build successfully.
+- Re-ran the full Release test suite successfully.
+
+---
+
 ## 10.5.5
 
 This patch release updates the GitHub Actions publishing flow so the repository can ship release metadata without forcing a NuGet.org push when the project-level publish flag is disabled.
