@@ -2,6 +2,40 @@
 
 ---
 
+## 10.5.5
+
+This patch release updates the GitHub Actions publishing flow so the repository can ship release metadata without forcing a NuGet.org push when the project-level publish flag is disabled.
+
+### CI / Publishing
+
+Changes:
+
+- Updated the trusted publishing workflow to read `NuGetPush` from `InsaneIO.Insane.csproj`.
+- The workflow now always restores, builds, and tests the project before deciding whether to publish.
+- When `NuGetPush` is `false`, the workflow exits the package publish section cleanly without packing or pushing artifacts.
+- When `NuGetPush` is `true`, the workflow continues with pack, NuGet login, and package push as usual.
+
+Impact:
+
+- Repository releases can now carry version and release-note metadata independently from package publication.
+- Documentation-only, CI-only, and similar non-package releases can finish successfully without attempting a NuGet.org push.
+
+### Package Metadata
+
+Changes:
+
+- Prepared release metadata now records:
+  - `Version` `10.5.5`
+  - `NuGetPush` `False`
+  - release notes generated from the latest Conventional Commits
+
+### Validation
+
+- Re-ran the Release build successfully.
+- Re-ran the full Release test suite successfully.
+
+---
+
 ## 10.5.4
 
 This patch release refreshes the repository release tooling to the latest `DotnetSemVerPs` workflow and aligns consumer-facing version references with the prepared package version.

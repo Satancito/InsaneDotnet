@@ -25,29 +25,27 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     <UserSecretsId>dcead069-ffae-4de4-be81-720ec8ff2ac7</UserSecretsId>
-    <PackageReleaseNotes><![CDATA[
-- Enum-valued cryptography and TOTP settings now serialize by name
-- Deserialization now accepts both enum names and legacy numeric values
-- Updated documentation and tests for the new JSON enum behavior
-]]></PackageReleaseNotes>
+    <PackageReleaseNotes>- ci: update DotnetSemVer prepared release metadata workflow
+- ci: gate NuGet publish with project flag</PackageReleaseNotes>
     <PackageIcon>Icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <IncludeContentInPack>true</IncludeContentInPack>
-    <Version>10.5.4</Version>
+    <Version>10.5.5</Version>
     <LangVersion>latest</LangVersion>
     <EnablePreviewFeatures>false</EnablePreviewFeatures>
     <!--<UseBlazorWebAssembly>true</UseBlazorWebAssembly>-->
     <!--<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>-->
     <!--<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>-->
-    <NumVer>10.5.4</NumVer>
-    <BuildNumber>1782558505</BuildNumber>
+    <NumVer>10.5.5</NumVer>
+    <BuildNumber>1782561425</BuildNumber>
     <PrereleaseName>
     </PrereleaseName>
     <BuildName>
     </BuildName>
     <IsPrerelease>False</IsPrerelease>
     <IsBuild>False</IsBuild>
+    <NuGetPush>False</NuGetPush>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <Deterministic>True</Deterministic>
