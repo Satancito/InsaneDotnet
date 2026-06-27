@@ -1,6 +1,9 @@
-[submodule "Tools/DevSecretManagerPs"]
+[submodule "Tools/DevSecretsManagerPs"]
 	path = Tools/DevSecretsManagerPs
 	url = https://github.com/Satancito/DevSecretsManagerPs.git
-[submodule "Tools/DotnetNugetPublisher"]
-	path = Tools/DotnetNugetPublisher
+[submodule "Tools/DotnetNuGetPublisherPs"]
+	path = Tools/DotnetNuGetPublisherPs
 	url = https://github.com/Satancito/DotnetNuGetPublisherPs.git
+[submodule "Tools/DotnetSemVerPs"]
+	path = Tools/DotnetSemVerPs
+	url = https://github.com/Satancito/DotnetSemVerPs.git

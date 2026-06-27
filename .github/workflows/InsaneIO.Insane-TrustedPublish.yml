@@ -1,0 +1,62 @@
+name: Publish InsaneIO.Insane to NuGet.org
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-test-pack-publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore package project
+        run: dotnet restore InsaneIO.Insane/InsaneIO.Insane.csproj
+
+      - name: Restore test project
+        run: dotnet restore InsaneIO.Insane.Tests/InsaneIO.Insane.Tests.csproj
+
+      - name: Build tests
+        run: dotnet build InsaneIO.Insane.Tests/InsaneIO.Insane.Tests.csproj --configuration Release --no-restore
+
+      - name: Run tests
+        run: dotnet test InsaneIO.Insane.Tests/InsaneIO.Insane.Tests.csproj --configuration Release --no-build --verbosity normal
+
+      - name: Pack
+        run: dotnet pack InsaneIO.Insane/InsaneIO.Insane.csproj --configuration Release --no-build --output artifacts
+
+      - name: NuGet login
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ vars.NUGET_ORG_USER }}
+
+      - name: Push packages
+        shell: pwsh
+        run: |
+          $apiKey = "${{ steps.login.outputs.NUGET_API_KEY }}"
+          $source = "https://api.nuget.org/v3/index.json"
+
+          Get-ChildItem artifacts -Filter *.nupkg -File |
+            Where-Object { $_.Name -notlike '*.snupkg' } |
+            ForEach-Object {
+              dotnet nuget push $_.FullName --api-key $apiKey --source $source --skip-duplicate
+            }
+
+          Get-ChildItem artifacts -Filter *.snupkg -File |
+            ForEach-Object {
+              dotnet nuget push $_.FullName --api-key $apiKey --source $source --skip-duplicate
+            }
